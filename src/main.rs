@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
 
@@ -17,11 +15,10 @@ async fn main() -> std::io::Result<()> {
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
-    let conf = Arc::new(config);
 
     HttpServer::new(move || {
         App::new()
-            .app_data(Data::new(Arc::clone(&conf)))
+            .app_data(Data::new(config.clone()))
             .wrap({
                 if let Some(cors_conf) = &cors {
                     let cors = Cors::default()
