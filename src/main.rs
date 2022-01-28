@@ -45,6 +45,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .wrap(middleware::Compress::default())
             .configure(api::configure)
+            .configure(api::configure_no_auth)
     })
     .bind((address, port))?
     .run()
