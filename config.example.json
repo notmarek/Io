@@ -1,0 +1,19 @@
+{
+    "address": "127.0.0.1",
+    "port": 1337,
+    "jwt": {
+        "valid_for": "744",
+        "private_key": "/home/marek/keys/private.pem",
+        "public_key": "/home/marek/keys/public.pem"
+    },
+    "info": {
+        "name": "Io",
+        "version": "0.0.1",
+        "storage_url": "http://storage.notmarek.com"
+    },
+    "cors": {
+        "allowed_origins": [
+            "https://Io.notmarek.com"
+        ]
+    }
+}
