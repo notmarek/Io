@@ -10,6 +10,8 @@ dependencies = [
  "actix-http",
  "actix-service",
  "actix-web",
+ "actix-web-httpauth",
+ "chrono",
  "jsonwebtoken",
  "pretty_env_logger",
  "reqwest",
@@ -210,6 +212,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "actix-web-httpauth"
+version = "0.6.0-beta.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95ff332baee0f5ce55d94c690acb33a390d04a458d4bbd40a593cf847ac74ba4"
+dependencies = [
+ "actix-service",
+ "actix-utils",
+ "actix-web",
+ "base64 0.13.0",
+ "futures-core",
+ "futures-util",
+ "pin-project-lite",
 ]
 
 [[package]]
