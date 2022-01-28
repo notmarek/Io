@@ -9,6 +9,7 @@ pub struct Config {
     pub info: SiteConfig,
     #[serde(default)]
     pub cors: Option<CORSConfig>,
+    pub db: DBConfig,
 }
 
 #[derive(Deserialize, Clone)]
@@ -29,4 +30,10 @@ pub struct SiteConfig {
 pub struct CORSConfig {
     #[serde(rename = "allowed_origins")]
     pub origins: Vec<String>,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct DBConfig {
+    pub connection_string: String,
+    pub connections: u32,
 }

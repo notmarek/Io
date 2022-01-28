@@ -15,5 +15,9 @@
         "allowed_origins": [
             "https://Io.notmarek.com"
         ]
+    },
+    "db": {
+        "connection_string": "postgres://username:password@localhost/diesel_demo",
+        "connections": 50
     }
 }

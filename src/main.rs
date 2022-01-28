@@ -1,7 +1,12 @@
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
 
-use io::{config::Config, api};
+use diesel::{
+    pg::PgConnection,
+    r2d2::{ConnectionManager, Pool},
+};
+
+use io::{api, config::Config, DBPool};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -12,13 +17,21 @@ async fn main() -> std::io::Result<()> {
         let conf = std::fs::read_to_string(conf_path)?;
         serde_json::from_str(&conf)?
     };
+    let db_string = config.db.connection_string.clone();
+    let db_connections = config.db.connections;
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
 
     HttpServer::new(move || {
+        let manager = ConnectionManager::<PgConnection>::new(&db_string);
+        let pool: DBPool = Pool::builder()
+            .max_size(db_connections)
+            .build(manager)
+            .expect("Failed to create pool.");
         App::new()
             .app_data(Data::new(config.clone()))
+            .app_data(Data::new(pool))
             .wrap({
                 if let Some(cors_conf) = &cors {
                     let cors = Cors::default()
