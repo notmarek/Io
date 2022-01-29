@@ -2,7 +2,7 @@
     "address": "127.0.0.1",
     "port": 1337,
     "jwt": {
-        "valid_for": "744",
+        "valid_for": 744,
         "private_key": "/home/marek/keys/private.pem",
         "public_key": "/home/marek/keys/public.pem"
     },
@@ -18,6 +18,6 @@
     },
     "db": {
         "connection_string": "postgres://username:password@localhost/diesel_demo",
-        "connections": 50
+        "connections": 10
     }
 }

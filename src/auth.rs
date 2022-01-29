@@ -4,7 +4,7 @@ use actix_web_httpauth::extractors::bearer::BearerAuth;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{self, decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::config::Config;
 
@@ -12,7 +12,7 @@ use crate::config::Config;
 pub struct Claims {
     pub user_id: String,
     pub perms: Vec<String>,
-    exp: i64,
+    pub exp: i64,
 }
 
 impl Claims {
@@ -24,14 +24,25 @@ impl Claims {
         }
     }
 
-    pub fn create_token(self, key_path: PathBuf) -> Result<String, Error> {
+    pub fn create_token(&self, key_path: &Path) -> Result<String, Error> {
         let key = std::fs::read(key_path)?;
         let enc_key = EncodingKey::from_rsa_pem(&key).unwrap();
         encode(&Header::new(Algorithm::RS512), &self, &enc_key)
             .map_err(|e| error::ErrorUnauthorized(e.to_string()))
     }
 
-    pub fn from_token(token: &str, key_path: PathBuf) -> Result<Self, Error> {
+    pub fn create_refresh_token(&self, key_path: &Path) -> Result<String, Error> {
+        let key = std::fs::read(key_path)?;
+        let enc_key = EncodingKey::from_rsa_pem(&key).unwrap();
+        encode(&Header::new(Algorithm::RS512), &Self {
+            user_id: self.user_id.clone(),
+            perms: vec!["REFRESH".to_string()],
+            exp: (Utc::now() + Duration::hours(24 * 93)).timestamp()
+        }, &enc_key)
+        .map_err(|e| error::ErrorUnauthorized(e.to_string()))
+    }
+
+    pub fn from_token(token: &str, key_path: &Path) -> Result<Self, Error> {
         let key = std::fs::read(key_path).unwrap();
         let dec_key = DecodingKey::from_rsa_pem(&key).unwrap();
         decode::<Self>(token, &dec_key, &Validation::new(Algorithm::RS512))
@@ -46,7 +57,7 @@ pub async fn validator(
 ) -> Result<ServiceRequest, Error> {
 	let token = creds.token();
     let config = req.app_data::<Data<Config>>().unwrap();
-	let claims = Claims::from_token(token, config.jwt.public_key.clone())?;
+	let claims = Claims::from_token(token, &config.jwt.public_key)?;
 
     // TODO: check ban status etc.. (we dont have a db yet)
 	

@@ -11,7 +11,12 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 }
 
 pub fn configure_no_auth(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::scope("/na").configure(info::configure).service(health));
+    cfg.service(
+        web::scope("/na")
+            .configure(info::configure)
+            .configure(user::configure)
+            .service(health),
+    );
 }
 
 #[actix_web::get("/health")]
