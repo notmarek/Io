@@ -18,10 +18,10 @@ pub struct Tokens {
 pub struct UserRequest {
     pub username: String,
     pub password: String,
-    pub captcha: Option<String>, // TODO: captcha integration
-    pub invite: Option<String>, // TODO: invite system
+    pub captcha: Option<String>,     // TODO: captcha integration
+    pub invite: Option<String>,      // TODO: invite system
     pub newpassword: Option<String>, // TODO: password changing
-    pub private: Option<String>, // TODO: account privacy settings
+    pub private: Option<String>,     // TODO: account privacy settings
 }
 
 #[actix_web::put("/user")]
@@ -48,6 +48,30 @@ async fn register(
     }
 }
 
+#[actix_web::post("/user")]
+async fn login(
+    config: web::Data<Config>,
+    dbpool: web::Data<DBPool>,
+    req_data: web::Json<UserRequest>,
+) -> impl actix_web::Responder {
+    let user = User::new(req_data.username.clone(), req_data.password.clone(), vec![]);
+    match user.login(&dbpool, config.jwt.valid_for) {
+        Ok(claims) => HttpResponse::Ok().json(Tokens {
+            status: "ok".to_string(),
+            token_type: "Bearer".to_string(),
+            token: claims.create_token(&config.jwt.private_key).unwrap(),
+            refresh_token: claims
+                .create_refresh_token(&config.jwt.private_key)
+                .unwrap(),
+            expiration: claims.exp,
+        }),
+        Err(e) => HttpResponse::Ok().json(ErrorResponse {
+            status: "error".to_string(),
+            error: e,
+        }),
+    }
+}
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(register);
+    cfg.service(register).service(login);
 }

@@ -1,7 +1,7 @@
 use crate::auth::Claims;
 use crate::schema::users;
 use crate::DBPool;
-use argon2::{self, hash_encoded, Config, ThreadMode, Variant, Version};
+use argon2::{self, hash_encoded, verify_encoded, Config, ThreadMode, Variant, Version};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -40,27 +40,39 @@ impl User {
         }
     }
 
+    pub fn login(mut self, pool: &DBPool, token_validity: i64) -> Result<Claims, String> {
+        let db = pool.get().unwrap();
+        let raw_password = self.password;
+        use crate::schema::users::dsl::*;
+        match users.filter(username.eq(&self.username)).first::<Self>(&db) {
+            Ok(u) => {
+                self = u;
+                if !verify_encoded(&self.password, raw_password.as_bytes()).unwrap() {
+                    return Err(String::from("invalid_password"));
+                }
+                Ok(Claims::new(self.id, self.permissions, token_validity))
+            }
+            Err(_) => Err(String::from("invalid_username")),
+        }
+    }
+
     pub fn register(
         mut self,
         salt: String,
         pool: &DBPool,
         token_validity: i64,
     ) -> Result<Claims, String> {
-        self.password = hash_password(self.password, salt);
         let db = pool.get().unwrap();
         use crate::schema::users::dsl::*;
         match users.filter(username.eq(&self.username)).first::<Self>(&db) {
-            Ok(_) => Err(String::from("Username already taken.")),
+            Ok(_) => Err(String::from("username_exists")),
             Err(_) => {
+                self.password = hash_password(self.password, salt);
                 match diesel::insert_into(users)
                     .values(self.clone())
                     .get_result::<Self>(&db)
                 {
-                    Ok(_) => Ok(Claims::new(
-                        self.id,
-                        self.permissions,
-                        token_validity,
-                    )),
+                    Ok(_) => Ok(Claims::new(self.id, self.permissions, token_validity)),
                     Err(e) => Err(format!("{}", e)),
                 }
             }
