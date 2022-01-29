@@ -8,7 +8,7 @@ use diesel::{
 };
 
 use io::{api, config::Config, DBPool};
-
+use io::utils::indexer::test_kool;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
-
+    test_kool(&config.folders.clone());
     HttpServer::new(move || {
         let session_info = Session {
             startup: Utc::now().timestamp()

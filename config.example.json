@@ -1,6 +1,10 @@
 {
     "address": "127.0.0.1",
     "port": 1337,
+    "folders": [
+        "/home/pi/drives/X/Animu",
+        "/home/pi/drives/Y/Animu"
+    ],
     "jwt": {
         "valid_for": 744,
         "private_key": "/home/marek/keys/private.pem",

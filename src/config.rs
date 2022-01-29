@@ -5,6 +5,7 @@ use std::path::PathBuf;
 pub struct Config {
     pub address: String,
     pub port: u16,
+    pub folders: Vec<PathBuf>,
     pub jwt: JWTConfig,
     pub info: SiteConfig,
     #[serde(default)]
