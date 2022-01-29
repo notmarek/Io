@@ -40,6 +40,15 @@ impl User {
         }
     }
 
+    pub fn get(uuid: String, pool: &DBPool) -> Result<Self, String> {
+        let db = pool.get().unwrap();
+        use crate::schema::users::dsl::*;
+        match users.filter(id.eq(&uuid)).first::<Self>(&db) {
+            Ok(u) => Ok(u),
+            Err(_) => Err(String::from("invalid_user")),
+        }
+    }
+
     pub fn login(mut self, pool: &DBPool, token_validity: i64) -> Result<Claims, String> {
         let db = pool.get().unwrap();
         let raw_password = self.password;

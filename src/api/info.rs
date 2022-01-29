@@ -35,6 +35,6 @@ async fn info(config: web::Data<Config>, session_info: web::Data<Session>) -> im
     })
 }
 
-pub fn configure(cfg: &mut web::ServiceConfig) {
+pub fn configure_na(cfg: &mut web::ServiceConfig) {
     cfg.service(info);
 }

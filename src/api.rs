@@ -7,14 +7,18 @@ mod user;
 pub fn configure(cfg: &mut web::ServiceConfig) {
     let auth = HttpAuthentication::bearer(crate::auth::validator);
 
-    cfg.service(web::scope("/api").wrap(Compat::new(auth)));
+    cfg.service(
+        web::scope("/api")
+            .wrap(Compat::new(auth))
+            .configure(user::configure),
+    );
 }
 
 pub fn configure_no_auth(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/na")
-            .configure(info::configure)
-            .configure(user::configure)
+            .configure(info::configure_na)
+            .configure(user::configure_na)
             .service(health),
     );
 }

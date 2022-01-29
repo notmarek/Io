@@ -1,8 +1,9 @@
+use crate::AuthData;
 use crate::config::Config;
 use crate::models::user::User;
 use crate::DBPool;
 use crate::ErrorResponse;
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpResponse, error};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -72,6 +73,34 @@ async fn login(
     }
 }
 
-pub fn configure(cfg: &mut web::ServiceConfig) {
+#[derive(Deserialize)]
+struct Uid {
+    user_id: String
+}
+
+#[actix_web::get("/user/{user_id}")]
+async fn user_info(path: web::Path<Uid>, AuthData(user): AuthData, pool: web::Data<DBPool>) -> actix_web::Result<impl actix_web::Responder> {
+    let user_info = {
+        if path.user_id == "@me" {
+            user
+        } else {
+            match User::get(path.user_id.clone(), &pool) {
+                Ok(u) => u,
+                Err(e) => return Err(error::ErrorNotFound(ErrorResponse {
+                    status: "error".to_string(),
+                    error: e,
+                }))
+            }
+        }
+    };
+    
+    Ok(HttpResponse::Ok().json(user_info))
+}
+
+pub fn configure_na(cfg: &mut web::ServiceConfig) {
     cfg.service(register).service(login);
+}
+
+pub fn configure(cfg: &mut web::ServiceConfig) {
+    cfg.service(user_info);
 }
