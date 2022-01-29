@@ -62,7 +62,7 @@ async fn login(
     dbpool: web::Data<DBPool>,
     req_data: web::Json<UserRequest>,
 ) -> impl actix_web::Responder {
-    if req_data.identifier.as_ref().unwrap() == "password" {
+    if req_data.identifier.as_ref().unwrap_or(&String::new()) == "password" {
         let user = User::new(
             req_data.username.clone().unwrap(),
             req_data.password.clone().unwrap(),
@@ -87,9 +87,9 @@ async fn login(
                 })
             }
         }
-    } else if req_data.identifier.as_ref().unwrap() == "refresh_token" {
+    } else if req_data.identifier.as_ref().unwrap_or(&String::new()) == "refresh_token" {
         let claims = Claims::from_token(
-            req_data.refresh_token.as_ref().unwrap(),
+            &req_data.refresh_token.as_ref().unwrap(),
             &config.jwt.public_key,
         )
         .unwrap();
@@ -102,25 +102,14 @@ async fn login(
                         error: "banned_user".to_string(),
                     });
                 } else if claims.perms.contains(&"REFRESH".to_string()) {
-                    match u.login(&dbpool, config.jwt.valid_for) {
-                        Ok(claims) => {
-                            return HttpResponse::Ok().json(Tokens {
-                                status: "ok".to_string(),
-                                token_type: "Bearer".to_string(),
-                                token: claims.create_token(&config.jwt.private_key).unwrap(),
-                                refresh_token: claims
-                                    .create_refresh_token(&config.jwt.private_key)
-                                    .unwrap(),
-                                expiration: claims.exp,
-                            })
-                        }
-                        Err(e) => {
-                            return HttpResponse::Ok().json(ErrorResponse {
-                                status: "error".to_string(),
-                                error: e,
-                            })
-                        }
-                    }
+                    let c = u.refresh(config.jwt.valid_for);
+                    return HttpResponse::Ok().json(Tokens {
+                        status: "ok".to_string(),
+                        token_type: "Bearer".to_string(),
+                        token: c.create_token(&config.jwt.private_key).unwrap(),
+                        refresh_token: c.create_refresh_token(&config.jwt.private_key).unwrap(),
+                        expiration: c.exp,
+                    });
                 } else {
                     return HttpResponse::Ok().json(ErrorResponse {
                         status: "error".to_string(),

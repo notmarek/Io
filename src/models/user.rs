@@ -49,6 +49,10 @@ impl User {
         }
     }
 
+    pub fn refresh(self, token_validity: i64) -> Claims {
+        Claims::new(self.id, self.permissions, token_validity)
+    }
+
     pub fn login(mut self, pool: &DBPool, token_validity: i64) -> Result<Claims, String> {
         let db = pool.get().unwrap();
         let raw_password = self.password;
