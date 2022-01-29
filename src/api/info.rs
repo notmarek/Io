@@ -1,10 +1,11 @@
-use crate::config::Config;
+use crate::{config::Config, Session};
 use actix_web::web;
 use serde::Serialize;
-use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt};
+use sysinfo::{System, SystemExt};
+use chrono::Utc;
 
 #[actix_web::get("/info")]
-async fn info(config: web::Data<Config>) -> impl actix_web::Responder {
+async fn info(config: web::Data<Config>, session_info: web::Data<Session>) -> impl actix_web::Responder {
     let mut sys = System::new_all();
     sys.refresh_all();
     let load = sys.load_average();
@@ -24,7 +25,7 @@ async fn info(config: web::Data<Config>) -> impl actix_web::Responder {
     actix_web::HttpResponse::Ok().json(Resp {
         site_name: config.info.name.clone(),
         version: config.info.version.clone(),
-        uptime: 133769420,                 // TODO: get the actual uptime
+        uptime: Utc::now().timestamp() - session_info.startup,
         system_uptime: sys.uptime(),
         load: format!("{}, {}, {}", load.one, load.five, load.fifteen),
         storage: config.info.storage_url.clone(),
