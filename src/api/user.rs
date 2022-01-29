@@ -89,7 +89,7 @@ async fn login(
         }
     } else if req_data.identifier.as_ref().unwrap_or(&String::new()) == "refresh_token" {
         let claims = Claims::from_token(
-            &req_data.refresh_token.as_ref().unwrap(),
+            req_data.refresh_token.as_ref().unwrap(),
             &config.jwt.public_key,
         )
         .unwrap();
