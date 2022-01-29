@@ -1,6 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
-
+use chrono::Utc;
+use io::Session;
 use diesel::{
     pg::PgConnection,
     r2d2::{ConnectionManager, Pool},
@@ -24,6 +25,9 @@ async fn main() -> std::io::Result<()> {
     let address = config.address.clone();
 
     HttpServer::new(move || {
+        let session_info = Session {
+            startup: Utc::now().timestamp()
+        };
         let manager = ConnectionManager::<PgConnection>::new(&db_string);
         let pool: DBPool = Pool::builder()
             .max_size(db_connections)
@@ -32,6 +36,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(Data::new(config.clone()))
             .app_data(Data::new(pool))
+            .app_data(Data::new(session_info))
             .wrap({
                 if let Some(cors_conf) = &cors {
                     let cors = Cors::default()

@@ -20,3 +20,7 @@ pub struct ErrorResponse {
     status: String,
     error: String,
 }
+
+pub struct Session {
+    pub startup: i64,
+}

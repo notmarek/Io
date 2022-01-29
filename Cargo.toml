@@ -29,3 +29,5 @@ diesel = { version = "1.4", features = ["postgres", "r2d2"] }
 rust-argon2 = "1.0"
 
 uuid = { version = "0.8", features = ["v4"] }
+
+sysinfo = "0.23"
