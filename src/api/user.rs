@@ -14,14 +14,23 @@ pub struct Tokens {
     expiration: i64,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserRequest {
+    pub username: String,
+    pub password: String,
+    pub captcha: Option<String>, // TODO: captcha integration
+    pub invite: Option<String>, // TODO: invite system
+    pub newpassword: Option<String>, // TODO: password changing
+    pub private: Option<String>, // TODO: account privacy settings
+}
+
 #[actix_web::put("/user")]
 async fn register(
     config: web::Data<Config>,
     dbpool: web::Data<DBPool>,
+    req_data: web::Json<UserRequest>,
 ) -> impl actix_web::Responder {
-    // todo!();
-    let user = User::new("Marek".to_string(), "password".to_string(), vec![]);
-    // let jwt: Claims = ;
+    let user = User::new(req_data.username.clone(), req_data.password.clone(), vec![]);
     match user.register("epicsalt#".to_string(), &dbpool, config.jwt.valid_for) {
         Ok(claims) => HttpResponse::Ok().json(Tokens {
             status: "ok".to_string(),
