@@ -1,16 +1,12 @@
-use std::time::Duration;
-
-use crate::eventqueue::{Event, Queue, QueueTrait, RawEvent};
-use std::sync::{Arc, Mutex};
-use std::thread;
 use std::{
     fs,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, ffi::OsStr,
 };
+use anitomy::{Anitomy, ElementCategory};
 
-pub fn kool(dir: &Path, depth: usize, depth_ttl: usize) -> std::io::Result<()> {
-    if dir.is_dir() {
-        let dir = fs::read_dir(dir);
+pub fn crawl(path: &Path, depth: usize, depth_ttl: usize, anitomy: &mut Anitomy) -> std::io::Result<()> {
+    if path.is_dir() {
+        let dir = fs::read_dir(path);
         if dir.is_err() {
             println!("Skip");
             return Ok(());
@@ -20,50 +16,46 @@ pub fn kool(dir: &Path, depth: usize, depth_ttl: usize) -> std::io::Result<()> {
             let path = entry.path();
             // println!("{}{}", " ".repeat(depth), (&path).to_str().unwrap());
             if path.is_dir() && depth_ttl > 0 {
-                kool(&path, depth + 1, depth_ttl - 1)?;
+                crawl(&path, depth + 1, depth_ttl - 1, anitomy)?;
+            } else {
+                index_file(&path, anitomy);
             }
         }
     }
-
     Ok(())
 }
 
-async fn run_worker(queue: Arc<Mutex<dyn QueueTrait>>) {
-    println!("Initialized queue thread.");
-    loop {
-        queue.lock().unwrap().update();
-        tokio::time::sleep(Duration::from_millis(125)).await;
+
+
+
+pub fn index_file(file_path: &Path, anitomy: &mut Anitomy) {
+    match anitomy.parse(file_path.file_name().unwrap().to_str().unwrap()) {
+        Ok(ref elements) => {
+            // println!("SUCCESS: Parsed the filename successfully!");
+            // println!(
+            //     "It is: {} #{} by {}", 
+            //     elements.get(ElementCategory::AnimeTitle).unwrap_or_default(), 
+            //     elements.get(ElementCategory::EpisodeNumber).unwrap_or_default(), 
+            //     elements.get(ElementCategory::ReleaseGroup).unwrap_or_default()
+            // );
+        },
+        Err(ref elements) => {
+            println!("ERROR: Couldn't parse the filename successfully!");
+            println!("But we managed to extract these elements: {:#?}", &**elements);
+        },
     }
-}
-
-pub fn test_queue() {
-    let queue = Arc::new(Mutex::new(Queue::new()));
-    let worker_queue = queue.clone();
-    queue.lock().unwrap().add_event(
-        RawEvent::AnilistRefreshEvent {
-            anilist_id: 69,
-        },
-        0,
-    );
-    queue.lock().unwrap().add_event(
-        RawEvent::AnilistRefreshEvent {
-            anilist_id: 72,
-        },
-        5,
-    );
-    tokio::spawn(async move { run_worker(worker_queue).await });
-    // println!("Is queue idle: {}", queue.lock().unwrap().is_idle());
-
 }
 
 pub fn test_kool(dirs: &Vec<PathBuf>) {
     use std::time::Instant;
+    let mut anitomy = Anitomy::new();
     let now = Instant::now();
     {
         for dir in dirs {
-            kool(dir, 0, 3).unwrap();
+            crawl(dir, 0, 3, &mut anitomy).unwrap();
         }
     }
+    // anitomy.
     let elapsed = now.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
 }

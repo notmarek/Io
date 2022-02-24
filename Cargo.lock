@@ -270,6 +270,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "anitomy"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5dbd2cfb14d3a442954182c1e8804a859e65143473ddfc7521e8766a4c44a9d"
+dependencies = [
+ "anitomy-sys",
+]
+
+[[package]]
+name = "anitomy-sys"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1ade7dff1b0d6e91f90986f26538baa14f8143d9c5d79cae3f914070a2e30ea"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -930,6 +948,7 @@ dependencies = [
  "actix-service",
  "actix-web",
  "actix-web-httpauth",
+ "anitomy",
  "async-trait",
  "chrono",
  "diesel",
