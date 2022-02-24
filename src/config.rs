@@ -5,12 +5,18 @@ use std::path::PathBuf;
 pub struct Config {
     pub address: String,
     pub port: u16,
-    pub folders: Vec<PathBuf>,
+    pub folders: Vec<Folder>,
     pub jwt: JWTConfig,
     pub info: SiteConfig,
     #[serde(default)]
     pub cors: Option<CORSConfig>,
     pub db: DBConfig,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct Folder {
+    pub path: PathBuf,
+    pub depth: usize,
 }
 
 #[derive(Deserialize, Clone)]

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 #[derive(Debug)]
 pub struct Queue {
     pub events: Vec<Event>,
@@ -7,16 +9,17 @@ pub struct Queue {
 pub enum RawEvent {
     AnilistSearchEvent { query: String },
     AnilistRefreshEvent { anilist_id: u32 },
-    FileIndexEvent { folder: String },
+    FileIndexEvent { folder: PathBuf, depth: usize },
     Idle,
 }
 
 impl RawEvent {
-    pub fn get_function(&self) -> bool {
+    pub fn execute(&self) {
         match self {
-            &Self::AnilistRefreshEvent { .. } => true,
-            _ => false
-        }
+            &Self::AnilistRefreshEvent { anilist_id: a } => println!("Anilist Refresh: {}", a),
+            &Self::FileIndexEvent { .. } => (),
+            _ => (),
+        };
     }
 }
 #[derive(Debug)]
@@ -36,7 +39,7 @@ pub trait QueueTrait: Send + Sync {
     fn is_idle(&self) -> bool;
     fn add_event(&mut self, event: RawEvent, priority: usize);
     fn is_current_job_finished(&self) -> bool;
-    fn execute_current_job(&mut self) -> bool;
+    fn execute_current_job(&mut self);
     fn update(&mut self);
 }
 
@@ -65,11 +68,11 @@ impl QueueTrait for Queue {
         self.current_job.finished
     }
 
-    fn execute_current_job(&mut self) -> bool {
+    fn execute_current_job(&mut self) {
         self.current_job.finished = true;        
-        let outcome = self.current_job.event.get_function();
-        println!("Is job refresh: {}", outcome);
-        outcome
+        self.current_job.event.execute();
+        // println!("Is job refresh: {}", outcome);
+        // outcome
     }
 
     fn update(&mut self) {

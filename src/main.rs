@@ -1,14 +1,29 @@
+use io::eventqueue::{Queue, QueueTrait, RawEvent};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
 use chrono::Utc;
-use io::{Session, utils::indexer::test_queue};
 use diesel::{
     pg::PgConnection,
     r2d2::{ConnectionManager, Pool},
 };
+use io::Session;
 
-use io::{api, config::Config, DBPool};
 use io::utils::indexer::test_kool;
+use io::{api, config::Config, DBPool};
+
+async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
+    println!("Initialized queue thread.");
+    loop {
+        queue.lock().unwrap().update();
+        tokio::time::sleep(Duration::from_millis(125)).await;
+    }
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
@@ -23,11 +38,19 @@ async fn main() -> std::io::Result<()> {
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
-    test_queue();
-    test_kool(&config.folders.clone());
+    let queue = Arc::new(Mutex::new(Queue::new()));
+    let worker_queue = queue.clone();
+    for folder in &config.folders.clone() {
+        queue
+        .lock()
+        .unwrap()
+        .add_event(RawEvent::FileIndexEvent { folder: folder.path.clone(), depth: folder.depth }, 0);
+    }
+    tokio::spawn(async move { run_queue(worker_queue).await });
+    test_kool(&config.folders.clone().into_iter().map(|f| f.path).collect());
     HttpServer::new(move || {
         let session_info = Session {
-            startup: Utc::now().timestamp()
+            startup: Utc::now().timestamp(),
         };
         let manager = ConnectionManager::<PgConnection>::new(&db_string);
         let pool: DBPool = Pool::builder()
@@ -38,6 +61,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(config.clone()))
             .app_data(Data::new(pool))
             .app_data(Data::new(session_info))
+            .app_data(Data::new(queue.clone()))
             .wrap({
                 if let Some(cors_conf) = &cors {
                     let cors = Cors::default()
@@ -66,4 +90,5 @@ async fn main() -> std::io::Result<()> {
     .bind((address, port))?
     .run()
     .await
+    
 }
