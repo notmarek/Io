@@ -1,7 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
 use chrono::Utc;
-use io::Session;
+use io::{Session, utils::indexer::test_queue};
 use diesel::{
     pg::PgConnection,
     r2d2::{ConnectionManager, Pool},
@@ -23,6 +23,7 @@ async fn main() -> std::io::Result<()> {
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
+    test_queue();
     test_kool(&config.folders.clone());
     HttpServer::new(move || {
         let session_info = Session {

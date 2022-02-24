@@ -20,6 +20,7 @@ pub mod config;
 pub mod models;
 pub mod schema;
 pub mod utils;
+pub mod eventqueue;
 
 pub type DBPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;
 
