@@ -46,8 +46,9 @@ impl Library {
         todo!("Create a remove method.")
     }
 
-    pub fn scan(&self, pool: &DBPool) {
+    pub fn crawl(&self, pool: &DBPool) {
         let mut anitomy = Anitomy::new();
-        crawl(Path::new(&self.path), self.depth, &mut anitomy).unwrap()
+        crawl(Path::new(&self.path), self.depth, &mut anitomy).unwrap();
+        todo!("Use crawl to add files to db.")
     }
 }

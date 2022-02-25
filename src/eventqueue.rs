@@ -15,9 +15,9 @@ pub enum RawEvent {
 
 impl RawEvent {
     pub fn execute(&self) {
-        match self {
-            &Self::AnilistRefreshEvent { anilist_id: a } => println!("Anilist Refresh: {}", a),
-            &Self::FileIndexEvent { .. } => (),
+        match *self {
+            Self::AnilistRefreshEvent { anilist_id: a } => println!("Anilist Refresh: {}", a),
+            Self::FileIndexEvent { .. } => (),
             _ => (),
         };
     }
@@ -34,13 +34,18 @@ pub struct Job {
     pub finished: bool,
 }
 
-
 pub trait QueueTrait: Send + Sync {
     fn is_idle(&self) -> bool;
     fn add_event(&mut self, event: RawEvent, priority: usize);
     fn is_current_job_finished(&self) -> bool;
     fn execute_current_job(&mut self);
     fn update(&mut self);
+}
+
+impl Default for Queue {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Queue {
@@ -69,14 +74,14 @@ impl QueueTrait for Queue {
     }
 
     fn execute_current_job(&mut self) {
-        self.current_job.finished = true;        
+        self.current_job.finished = true;
         self.current_job.event.execute();
         // println!("Is job refresh: {}", outcome);
         // outcome
     }
 
     fn update(&mut self) {
-        if (self.is_idle() || self.is_current_job_finished()) && self.events.len() > 0 {
+        if (self.is_idle() || self.is_current_job_finished()) && !self.events.is_empty() {
             self.events.sort_by(|a, b| b.priority.cmp(&a.priority));
             self.current_job = Job {
                 event: self.events.first().unwrap().event.clone(),

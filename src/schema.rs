@@ -1,4 +1,19 @@
 table! {
+    files (id) {
+        id -> Int4,
+        parent -> Varchar,
+        library_id -> Int4,
+        path -> Varchar,
+        folder -> Bool,
+        last_update -> Int8,
+        title -> Nullable<Varchar>,
+        season -> Nullable<Varchar>,
+        episode -> Nullable<Float4>,
+        release_group -> Nullable<Varchar>,
+    }
+}
+
+table! {
     libraries (id) {
         id -> Int4,
         path -> Varchar,
@@ -16,6 +31,7 @@ table! {
 }
 
 allow_tables_to_appear_in_same_query!(
+    files,
     libraries,
     users,
 );

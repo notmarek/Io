@@ -1,8 +1,8 @@
 use std::{
     fs,
-    path::{Path, PathBuf}, ffi::OsStr,
+    path::{Path, PathBuf},
 };
-use anitomy::{Anitomy, ElementCategory};
+use anitomy::{Anitomy};
 
 pub fn crawl(path: &Path, depth_ttl: i32, anitomy: &mut Anitomy) -> std::io::Result<()> {
     if path.is_dir() {
@@ -16,11 +16,11 @@ pub fn crawl(path: &Path, depth_ttl: i32, anitomy: &mut Anitomy) -> std::io::Res
             let path = entry.path();
             // println!("{}{}", " ".repeat(depth), (&path).to_str().unwrap());
             if path.is_dir() {
-                if depth_ttl > 0 || depth_ttl < 0 {
+                if depth_ttl != 0 {
                     crawl(&path, depth_ttl - 1, anitomy)?;
                 }
             } else {
-                index_file(&path, anitomy);
+                scan_file(&path, anitomy);
             }
         }
     }
@@ -30,7 +30,7 @@ pub fn crawl(path: &Path, depth_ttl: i32, anitomy: &mut Anitomy) -> std::io::Res
 
 
 
-pub fn index_file(file_path: &Path, anitomy: &mut Anitomy) {
+pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) {
     println!("{}, {}", file_path.to_string_lossy(), file_path.is_dir());
     // return();
     match anitomy.parse(file_path.file_name().unwrap().to_str().unwrap()) {
@@ -38,7 +38,7 @@ pub fn index_file(file_path: &Path, anitomy: &mut Anitomy) {
             // println!("SUCCESS: Parsed the filename successfully!");
             // println!(
             //     "It is: {} #{} by {}", 
-                elements.get(ElementCategory::AnimeTitle).unwrap_or_default(), 
+                // elements.get(ElementCategory::AnimeTitle).unwrap_or_default()
             //     elements.get(ElementCategory::EpisodeNumber).unwrap_or_default(), 
             //     elements.get(ElementCategory::ReleaseGroup).unwrap_or_default()
             // );
