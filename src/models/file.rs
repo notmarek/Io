@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 pub struct File {
     pub id: i32,
     pub parent: String, // parent folder in relation to library root
-    pub library_id: i32, // which library is this file a part of
+    pub library_id: String, // which library is this file a part of
     pub path: String, // in relation to library
     pub folder: bool, // is this a folder or a file?
     pub last_update: i64, // unix timestamp of last update
@@ -25,13 +25,13 @@ pub struct File {
 #[table_name = "files"]
 pub struct NewFile{
     pub parent: String, // parent folder in relation to library root
-    pub library_id: i32, // which library is this file a part of
+    pub library_id: String, // which library is this file a part of
     pub path: String, // in relation to library
     pub folder: bool, // is this a folder or a file?
 }
 
 impl File {
-    pub fn new(f_parent: String, f_library_id: i32, f_path: String, f_folder: bool, pool: &DBPool) -> Self {
+    pub fn new(f_parent: String, f_library_id: String, f_path: String, f_folder: bool, pool: &DBPool) -> Self {
         let db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
         match files.filter(path.eq(&f_path)).first::<Self>(&db) {

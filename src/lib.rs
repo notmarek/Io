@@ -25,6 +25,13 @@ pub mod eventqueue;
 pub type DBPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;
 
 #[derive(Debug, Serialize)]
+pub struct Response<T: Serialize> {
+    status: String,
+    data: T, 
+}
+
+
+#[derive(Debug, Serialize)]
 pub struct ErrorResponse {
     status: String,
     error: String,
@@ -32,6 +39,12 @@ pub struct ErrorResponse {
 
 
 impl Display for ErrorResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		serde_json::to_string(self).unwrap().fmt(f)
+	}
+}
+
+impl<T: Serialize> Display for Response<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		serde_json::to_string(self).unwrap().fmt(f)
 	}

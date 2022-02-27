@@ -2,7 +2,7 @@ table! {
     files (id) {
         id -> Int4,
         parent -> Varchar,
-        library_id -> Int4,
+        library_id -> Varchar,
         path -> Varchar,
         folder -> Bool,
         last_update -> Int8,
@@ -15,9 +15,10 @@ table! {
 
 table! {
     libraries (id) {
-        id -> Int4,
+        id -> Varchar,
         path -> Varchar,
         depth -> Int4,
+        last_scan -> Int4,
     }
 }
 

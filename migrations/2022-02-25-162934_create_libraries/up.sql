@@ -1,8 +1,9 @@
 CREATE TABLE public.libraries
 (
-    id SERIAL PRIMARY KEY NOT NULL,
+    id VARCHAR PRIMARY KEY NOT NULL,
     path VARCHAR NOT NULL,
-    depth INTEGER NOT NULL
+    depth INTEGER NOT NULL,
+    last_scan INTEGER NOT NULL
 )
 
 TABLESPACE pg_default;

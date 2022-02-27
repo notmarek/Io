@@ -2,6 +2,7 @@ use actix_web::{middleware::Compat, web};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
 mod info;
+mod library;
 mod user;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
@@ -10,7 +11,8 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
             .wrap(Compat::new(auth))
-            .configure(user::configure),
+            .configure(user::configure)
+            .configure(library::configure),
     );
 }
 

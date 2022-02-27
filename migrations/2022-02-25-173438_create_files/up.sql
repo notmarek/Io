@@ -2,7 +2,7 @@ CREATE TABLE public.files
 (
     id SERIAL PRIMARY KEY NOT NULL,
     parent VARCHAR NOT NULL,
-    library_id INTEGER NOT NULL,
+    library_id VARCHAR NOT NULL,
     path VARCHAR NOT NULL,
     folder BOOLEAN NOT NULL,
     last_update BIGINT NOT NULL,

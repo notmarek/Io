@@ -6,19 +6,15 @@ use crate::utils::indexer::crawl;
 use anitomy::Anitomy;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-#[derive(Debug, Queryable, Serialize, Clone)]
-pub struct Library {
-    pub id: i32,
-    pub path: String, // library root
-    pub depth: i32,   // how deep should we scan? -1 for deepscan
-}
-
-#[derive(Debug, Deserialize, Insertable, Clone)]
+#[derive(Debug, Queryable, Deserialize, Serialize, Insertable, Clone)]
 #[table_name = "libraries"]
-pub struct NewLibrary {
+pub struct Library {
+    pub id: String,
     pub path: String, // library root
     pub depth: i32,   // how deep should we scan? -1 for deepscan
+    pub last_scan: i32,
 }
 
 impl Library {
@@ -29,9 +25,11 @@ impl Library {
             Ok(l) => l,
             Err(_) => {
                 match diesel::insert_into(libraries)
-                    .values(NewLibrary {
+                    .values(Library {
+                        id: Uuid::new_v4().to_string(),
                         path: lib_path,
                         depth: lib_depth,
+                        last_scan: 0,
                     })
                     .get_result::<Self>(&db)
                 {
@@ -40,6 +38,18 @@ impl Library {
                 }
             }
         }
+    }
+
+    pub fn get(lib_id: String, pool: &DBPool) -> Result<Self, String> {
+        let db = pool.get().unwrap();
+        use crate::schema::libraries::dsl::*;
+        libraries.filter(id.eq(&lib_id)).first::<Self>(&db).map_err(|_| String::from("not_found"))
+    }
+
+    pub fn get_all(lib_id: String, pool: &DBPool) -> Result<Vec<Self>, String> {
+        let db = pool.get().unwrap();
+        use crate::schema::libraries::dsl::*;
+        libraries.filter(id.eq(&lib_id)).load::<Self>(&db).map_err(|_| String::from("unknown_errro"))
     }
 
     pub fn remove(&self, pool: &DBPool) {
