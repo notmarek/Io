@@ -14,5 +14,9 @@ cur = conn.cursor()
 cur.execute(f"""UPDATE users SET permissions = '{{{",".join(permissions)}}}' WHERE username = '{username}'""")
 
 cur.execute(f"""SELECT * FROM users WHERE username = '{username}'""")
+
 rows = cur.fetchall()
+conn.commit()
+cur.close()
+conn.close()
 print(rows)
