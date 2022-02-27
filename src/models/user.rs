@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::auth::Claims;
 use crate::schema::users;
 use crate::DBPool;
@@ -90,5 +92,11 @@ impl User {
                 }
             }
         }
+    }
+
+    pub fn has_permission_one_of<T: Display>(self, perms: Vec<T>) -> bool {
+        perms
+            .iter()
+            .any(|p| self.permissions.iter().any(|e| e == &p.to_string()))
     }
 }

@@ -51,10 +51,35 @@ async fn library(
             }
         }
     };
-
     Ok(HttpResponse::Ok().json(library))
 }
 
+#[derive(Deserialize)]
+struct Lib {
+    path: String,
+    depth: i32,
+}
+
+#[actix_web::put("/library")]
+async fn create_library(
+    data: web::Json<Lib>,
+    pool: web::Data<DBPool>,
+    AuthData(user): AuthData,
+) -> impl actix_web::Responder {
+    if !user.has_permission_one_of(vec!["create_library", "*_library", "administrator"])
+    {
+        return Err(error::ErrorForbidden(ErrorResponse {
+            status: "error".to_string(),
+            error: "missing_permissions".to_string(),
+        }));
+    }
+    let lib = Library::new(data.path.clone(), data.depth, &pool);
+    Ok(HttpResponse::Ok().json(Response {
+        status: "ok".to_string(),
+        data: lib,
+    }))
+}
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(libraries).service(library);
+    cfg.service(libraries).service(library).service(create_library);
 }
