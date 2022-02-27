@@ -54,6 +54,30 @@ async fn library(
     Ok(HttpResponse::Ok().json(library))
 }
 
+#[actix_web::delete("/library/{library_id}")]
+async fn delete_library(
+    path: web::Path<LibId>,
+    pool: web::Data<DBPool>,
+    AuthData(user): AuthData,
+) -> impl actix_web::Responder {
+    if !user.has_permission_one_of(vec!["delete_library", "*_library", "administrator"]) {
+        return Err(error::ErrorForbidden(ErrorResponse {
+            status: "error".to_string(),
+            error: "missing_permissions".to_string(),
+        }));
+    }
+    match Library::delete(path.library_id.clone(), &pool) {
+        Ok(u) => Ok(HttpResponse::Ok().json(Response {
+            status: "ok".to_string(),
+            data: u,
+        })),
+        Err(e) => Err(error::ErrorNotFound(ErrorResponse {
+            status: "error".to_string(),
+            error: e,
+        })),
+    }
+}
+
 #[derive(Deserialize)]
 struct Lib {
     path: String,
@@ -66,8 +90,7 @@ async fn create_library(
     pool: web::Data<DBPool>,
     AuthData(user): AuthData,
 ) -> impl actix_web::Responder {
-    if !user.has_permission_one_of(vec!["create_library", "*_library", "administrator"])
-    {
+    if !user.has_permission_one_of(vec!["create_library", "*_library", "administrator"]) {
         return Err(error::ErrorForbidden(ErrorResponse {
             status: "error".to_string(),
             error: "missing_permissions".to_string(),
@@ -81,5 +104,7 @@ async fn create_library(
 }
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(libraries).service(library).service(create_library);
+    cfg.service(libraries)
+        .service(library)
+        .service(create_library);
 }

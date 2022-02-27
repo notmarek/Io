@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use crate::schema::libraries;
-use crate::DBPool;
 use crate::utils::indexer::crawl;
+use crate::DBPool;
 use anitomy::Anitomy;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -43,17 +43,27 @@ impl Library {
     pub fn get(lib_id: String, pool: &DBPool) -> Result<Self, String> {
         let db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
-        libraries.filter(id.eq(&lib_id)).first::<Self>(&db).map_err(|_| String::from("not_found"))
+        libraries
+            .filter(id.eq(&lib_id))
+            .first::<Self>(&db)
+            .map_err(|_| String::from("not_found"))
     }
 
     pub fn get_all(lib_id: String, pool: &DBPool) -> Result<Vec<Self>, String> {
         let db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
-        libraries.filter(id.eq(&lib_id)).load::<Self>(&db).map_err(|_| String::from("unknown_errro"))
+        libraries
+            .filter(id.eq(&lib_id))
+            .load::<Self>(&db)
+            .map_err(|_| String::from("unknown_error"))
     }
 
-    pub fn remove(&self, pool: &DBPool) {
-        todo!("Create a remove method.")
+    pub fn delete(lib_id: String, pool: &DBPool) -> Result<usize, String> {
+        let db = pool.get().unwrap();
+        use crate::schema::libraries::dsl::*;
+        diesel::delete(libraries.find(&lib_id))
+            .execute(&db)
+            .map_err(|_| String::from("not_found"))
     }
 
     pub fn crawl(&self, pool: &DBPool) {

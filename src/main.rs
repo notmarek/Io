@@ -47,7 +47,7 @@ async fn main() -> std::io::Result<()> {
         .add_event(RawEvent::FileIndexEvent { folder: folder.path.clone(), depth: folder.depth }, 0);
     }
     tokio::spawn(async move { run_queue(worker_queue).await });
-    test_kool(&config.folders.clone().into_iter().map(|f| f.path).collect());
+    // test_kool(&config.folders.clone().into_iter().map(|f| f.path).collect());
     HttpServer::new(move || {
         let session_info = Session {
             startup: Utc::now().timestamp(),
