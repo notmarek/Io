@@ -13,7 +13,7 @@ use diesel::{
 };
 use io::Session;
 
-use io::utils::indexer::test_kool;
+// use io::utils::indexer::test_kool;
 use io::{api, config::Config, DBPool};
 
 async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {

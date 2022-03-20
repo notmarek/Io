@@ -1,6 +1,6 @@
 table! {
     files (id) {
-        id -> Int4,
+        id -> Varchar,
         parent -> Varchar,
         library_id -> Varchar,
         path -> Varchar,

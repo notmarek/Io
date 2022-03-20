@@ -4,6 +4,7 @@ use actix_web_httpauth::middleware::HttpAuthentication;
 mod info;
 mod library;
 mod user;
+mod file;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     let auth = HttpAuthentication::bearer(crate::auth::validator);

@@ -1,6 +1,6 @@
 CREATE TABLE public.files
 (
-    id SERIAL PRIMARY KEY NOT NULL,
+    id VARCHAR PRIMARY KEY NOT NULL,
     parent VARCHAR NOT NULL,
     library_id VARCHAR NOT NULL,
     path VARCHAR NOT NULL,

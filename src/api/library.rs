@@ -106,5 +106,6 @@ async fn create_library(
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(libraries)
         .service(library)
-        .service(create_library);
+        .service(create_library)
+        .service(delete_library);
 }

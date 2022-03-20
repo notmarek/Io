@@ -6,10 +6,11 @@ use crate::utils::indexer::scan_file;
 use anitomy::Anitomy;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Queryable, Serialize, Clone)]
 pub struct File {
-    pub id: i32,
+    pub id: String,
     pub parent: String, // parent folder in relation to library root
     pub library_id: String, // which library is this file a part of
     pub path: String, // in relation to library
@@ -24,6 +25,7 @@ pub struct File {
 #[derive(Debug, Deserialize, Insertable, Clone)]
 #[table_name = "files"]
 pub struct NewFile{
+    pub id: String,
     pub parent: String, // parent folder in relation to library root
     pub library_id: String, // which library is this file a part of
     pub path: String, // in relation to library
@@ -39,6 +41,7 @@ impl File {
             Err(_) => {
                 match diesel::insert_into(files)
                     .values(NewFile {
+                        id: Uuid::new_v4().to_string(),
                         parent: f_parent,
                         library_id: f_library_id,
                         path: f_path,
