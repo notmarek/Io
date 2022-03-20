@@ -7,12 +7,32 @@ struct FileId {
     file_id: String,
 }
 
+impl FileId {
+    pub fn get(&self, pool: &DBPool) -> Result<File, String> {
+        File::get(self.file_id.clone(), pool)
+    }
+}
+
 #[actix_web::get("/file/{file_id}")]
 async fn file(
-    path: web::Path<FileId>,
+    fid: web::Path<FileId>,
     pool: web::Data<DBPool>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
+    let file = fid.get(&pool);
+    if let Err(e) = file {
+        return Err(error::ErrorNotFound(ErrorResponse {
+            status: "error".to_string(),
+            error: e,
+        }));
+    };
+    let file = file.unwrap();
+    Ok(HttpResponse::Ok().json(Response {
+        status: "ok".to_string(),
+        data: file,
+    }))
+}
 
-    ""
+pub fn configure(cfg: &mut web::ServiceConfig) {
+    cfg.service(file);
 }

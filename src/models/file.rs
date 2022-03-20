@@ -56,6 +56,12 @@ impl File {
         }
     }
 
+    pub fn get(fid: String, pool: &DBPool) -> Result<Self, String> {
+        let db = pool.get().unwrap();
+        use crate::schema::files::dsl::*;
+        files.filter(id.eq(fid)).first::<Self>(&db).map_err(|_| String::from("not_found"))
+    }
+
     pub fn scan(&mut self, pool: &DBPool) {
         let mut anitomy = Anitomy::new();
         scan_file(Path::new(&self.path), &mut anitomy);
