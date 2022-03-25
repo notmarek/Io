@@ -68,4 +68,9 @@ impl File {
         todo!("Use scan file response to upodate file.")
     }
 
+    pub fn get_folder_content(&self, pool: &DBPool) -> Vec<Self> {
+        let db = pool.get().unwrap();
+        use crate::schema::files::dsl::*;
+        files.filter(parent.eq(path)).get_results::<Self>(&db).unwrap()
+    }
 }

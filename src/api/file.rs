@@ -27,6 +27,12 @@ async fn file(
         }));
     };
     let file = file.unwrap();
+    if file.folder {
+        return Ok(HttpResponse::Ok().json(Response {
+            status: "ok".to_string(),
+            data: file.get_folder_content(&pool),
+        }))
+    }
     Ok(HttpResponse::Ok().json(Response {
         status: "ok".to_string(),
         data: file,
