@@ -1,10 +1,9 @@
-use crate::{models::file::{File, FileChangeset}, DBPool};
-use anitomy::Anitomy;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    time::SystemTime,
+use crate::{
+    models::file::{File, FileChangeset},
+    DBPool,
 };
+use anitomy::Anitomy;
+use std::{fs, path::Path, time::SystemTime};
 
 pub fn crawl(
     path: &Path,
@@ -12,8 +11,8 @@ pub fn crawl(
     anitomy: &mut Anitomy,
     pool: &DBPool,
     library_id: String,
-) -> std::io::Result<()> {
-    let file = File::new(
+) -> Result<(), String> {
+    File::new(
         path.parent().unwrap().to_str().unwrap().to_string(),
         library_id.clone(),
         path.to_str().unwrap().to_string(),
@@ -23,10 +22,12 @@ pub fn crawl(
     if path.is_dir() {
         let dir = fs::read_dir(path);
         if dir.is_err() {
-            return Ok(());
+            return Err(String::from("somethign happened idk"));
         }
-        for entry in dir? {
-            let entry = entry?;
+        for entry in dir.unwrap() {
+            //unwrap should be safe?
+
+            let entry = entry.map_err(|_| String::from("the entry is broken bruyh"))?;
             let path = entry.path();
             if depth_ttl != 0 {
                 crawl(&path, depth_ttl - 1, anitomy, pool, library_id.clone())?;
@@ -35,7 +36,6 @@ pub fn crawl(
     }
     Ok(())
 }
-
 pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) -> Result<FileChangeset, String> {
     // println!("{}, {}", file_path.to_string_lossy(), file_path.is_dir());
     // return();
@@ -83,24 +83,24 @@ pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) -> Result<FileChangese
             //     elements.get(ElementCategory::ReleaseGroup).unwrap_or_default()
             // );
         }
-        Err(ref elements) => {
-            return Err(String::from("Anitomy died nigga"));
+        Err(ref _elements) => {
+            Err(String::from("Anitomy died nigga"))
             // println!("ERROR: Couldn't parse the filename successfully!");
             // println!("But we managed to extract these elements: {:#?}", &**elements);
         }
     }
 }
 
-pub fn test_kool(dirs: &Vec<PathBuf>) {
-    use std::time::Instant;
-    let mut anitomy = Anitomy::new();
-    let now = Instant::now();
-    {
-        for dir in dirs {
-            // crawl(dir, 3, &mut anitomy).unwrap();
-        }
-    }
-    // anitomy.
-    let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
-}
+// pub fn test_kool(dirs: &Vec<PathBuf>) {
+//     use std::time::Instant;
+//     let mut anitomy = Anitomy::new();
+//     let now = Instant::now();
+//     {
+//         for dir in dirs {
+//             // crawl(dir, 3, &mut anitomy).unwrap();
+//         }
+//     }
+//     // anitomy.
+//     let elapsed = now.elapsed();
+//     println!("Elapsed: {:.2?}", elapsed);
+// }

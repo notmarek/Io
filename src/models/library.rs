@@ -68,7 +68,10 @@ impl Library {
 
     pub fn crawl(&self, pool: &DBPool) {
         let mut anitomy = Anitomy::new();
-        // crawl(Path::new(&self.path), self.depth, &mut anitomy).unwrap();
+        match crawl(Path::new(&self.path), self.depth, &mut anitomy, pool, self.id.clone()) {
+            Ok(_) => (),
+            Err(e) => println!("{}", e),
+        }
         todo!("Use crawl to add files to db.")
     }
 }
