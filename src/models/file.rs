@@ -4,17 +4,28 @@ use crate::schema::files;
 use crate::DBPool;
 use crate::utils::indexer::scan_file;
 use anitomy::Anitomy;
-use diesel::prelude::*;
+use diesel::{prelude::*, Identifiable, AsChangeset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Queryable, Serialize, Clone)]
+#[derive(Debug, Queryable, Serialize, Clone, Identifiable, AsChangeset)]
+#[table_name="files"]
 pub struct File {
     pub id: String,
     pub parent: String, // parent folder in relation to library root
     pub library_id: String, // which library is this file a part of
     pub path: String, // in relation to library
     pub folder: bool, // is this a folder or a file?
+    pub last_update: i64, // unix timestamp of last update
+    pub title: Option<String>, // title extracted with Anitomy
+    pub season: Option<String>, // season --//--
+    pub episode: Option<f32>, // episode --//--
+    pub release_group: Option<String>, // group --//--
+}
+
+#[derive(AsChangeset, Clone)]
+#[table_name="files"]
+pub struct FileChangeset {
     pub last_update: i64, // unix timestamp of last update
     pub title: Option<String>, // title extracted with Anitomy
     pub season: Option<String>, // season --//--
@@ -64,8 +75,17 @@ impl File {
 
     pub fn scan(&mut self, pool: &DBPool) {
         let mut anitomy = Anitomy::new();
-        scan_file(Path::new(&self.path), &mut anitomy);
-        todo!("Use scan file response to upodate file.")
+        if let Ok(scanned) = scan_file(Path::new(&self.path), &mut anitomy) {
+            self.last_update = scanned.last_update;
+            self.title = scanned.title;
+            self.season = scanned.season;
+            self.episode = scanned.episode;
+            self.release_group = scanned.release_group;
+            let db = pool.get().unwrap();
+            *self = self.save_changes::<Self>(&*db).unwrap();
+        }
+
+        todo!("handle errors in scan_file")
     }
 
     pub fn get_folder_content(&self, pool: &DBPool) -> Vec<Self> {

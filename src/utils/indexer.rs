@@ -1,4 +1,4 @@
-use crate::{models::file::File, DBPool};
+use crate::{models::file::{File, FileChangeset}, DBPool};
 use anitomy::Anitomy;
 use std::{
     fs,
@@ -36,19 +36,14 @@ pub fn crawl(
     Ok(())
 }
 
-pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) -> Result<File, String> {
+pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) -> Result<FileChangeset, String> {
     // println!("{}, {}", file_path.to_string_lossy(), file_path.is_dir());
     // return();
     let metadata = fs::metadata(file_path).unwrap();
     match anitomy.parse(file_path.file_name().unwrap().to_str().unwrap()) {
         Ok(ref elements) => {
             // println!("SUCCESS: Parsed the filename successfully!");
-            return Ok(File {
-                id: String::new(),
-                parent: String::new(),
-                library_id: String::new(),
-                path: String::new(),
-                folder: false,
+            return Ok(FileChangeset {
                 last_update: metadata
                     .modified()
                     .unwrap()
