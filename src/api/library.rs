@@ -9,12 +9,11 @@ struct LibId {
 
 #[actix_web::get("/library/all")]
 async fn libraries(
-    path: web::Path<LibId>,
     pool: web::Data<DBPool>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
     let libraries = {
-        match Library::get_all(path.library_id.clone(), &pool) {
+        match Library::get_all(&pool) {
             Ok(u) => Response {
                 status: "ok".to_string(),
                 data: u,

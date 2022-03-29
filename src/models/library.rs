@@ -49,11 +49,10 @@ impl Library {
             .map_err(|_| String::from("not_found"))
     }
 
-    pub fn get_all(lib_id: String, pool: &DBPool) -> Result<Vec<Self>, String> {
+    pub fn get_all(pool: &DBPool) -> Result<Vec<Self>, String> {
         let db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
         libraries
-            .filter(id.eq(&lib_id))
             .load::<Self>(&db)
             .map_err(|_| String::from("unknown_error"))
     }

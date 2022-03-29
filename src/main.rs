@@ -40,12 +40,12 @@ async fn main() -> std::io::Result<()> {
     let address = config.address.clone();
     let queue = Arc::new(Mutex::new(Queue::new()));
     let worker_queue = queue.clone();
-    for folder in &config.folders.clone() {
-        queue
-        .lock()
-        .unwrap()
-        .add_event(RawEvent::FileIndexEvent { folder: folder.path.clone(), depth: folder.depth }, 0);
-    }
+    // for folder in &config.folders.clone() {
+    //     queue
+    //     .lock()
+    //     .unwrap()
+    //     .add_event(RawEvent::FileIndexEvent { folder: folder.path.clone(), depth: folder.depth }, 0);
+    // }
     tokio::spawn(async move { run_queue(worker_queue).await });
     // test_kool(&config.folders.clone().into_iter().map(|f| f.path).collect());
     HttpServer::new(move || {
