@@ -87,7 +87,7 @@ impl QueueTrait for Queue {
     fn execute_current_job(&mut self) {
         self.current_job.event.execute(self.pool.clone());
         self.current_job.finished = true;
-        // println!("Is job refresh: {}", outcome);
+        println!("Job finished: {:#?}", self.current_job.event);
         // outcome
     }
 

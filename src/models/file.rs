@@ -41,6 +41,7 @@ pub struct NewFile{
     pub library_id: String, // which library is this file a part of
     pub path: String, // in relation to library
     pub folder: bool, // is this a folder or a file?
+    pub last_update: i64,
 }
 
 impl File {
@@ -57,11 +58,12 @@ impl File {
                         library_id: f_library_id,
                         path: f_path,
                         folder: f_folder,
+                        last_update: 0,
                     })
                     .get_result::<Self>(&db)
                 {
                     Ok(l) => l,
-                    Err(_) => panic!("What the fuck man."),
+                    Err(e) => panic!("What the fuck man. {}", e),
                 }
             }
         }

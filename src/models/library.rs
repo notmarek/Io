@@ -71,6 +71,5 @@ impl Library {
             Ok(_) => (),
             Err(e) => println!("{}", e),
         }
-        todo!("Use crawl to add files to db.")
     }
 }
