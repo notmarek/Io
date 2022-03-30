@@ -1,9 +1,11 @@
 use std::fmt::Display;
+use std::sync::{Arc, Mutex};
 
 use actix_web::FromRequest;
 use actix_web::HttpMessage;
 use actix_web::HttpRequest;
 use actix_web::ResponseError;
+use eventqueue::Queue;
 use futures::future::{ready, Ready};
 use serde::Serialize;
 use thiserror::Error;
@@ -23,6 +25,7 @@ pub mod utils;
 pub mod eventqueue;
 
 pub type DBPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;
+pub type ArcQueue = Arc<Mutex<Queue>>;
 
 #[derive(Debug, Serialize)]
 pub struct Response<T: Serialize> {

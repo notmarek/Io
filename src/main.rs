@@ -1,4 +1,7 @@
-use io::eventqueue::{Queue, QueueTrait, RawEvent};
+use io::{
+    eventqueue::{Queue, QueueTrait},
+    ArcQueue,
+};
 use std::{
     sync::{Arc, Mutex},
     time::Duration,
@@ -38,7 +41,11 @@ async fn main() -> std::io::Result<()> {
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
-    let queue = Arc::new(Mutex::new(Queue::new()));
+    let queue_pool: DBPool = Pool::builder()
+        .max_size(db_connections)
+        .build(ConnectionManager::<PgConnection>::new(&db_string))
+        .expect("Failed to create pool.");
+    let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(queue_pool.clone()))));
     let worker_queue = queue.clone();
     // for folder in &config.folders.clone() {
     //     queue
@@ -90,5 +97,4 @@ async fn main() -> std::io::Result<()> {
     .bind((address, port))?
     .run()
     .await
-    
 }

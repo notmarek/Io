@@ -1,22 +1,32 @@
 use std::path::PathBuf;
 
-#[derive(Debug)]
+use crate::{models::library::Library, DBPool};
+
 pub struct Queue {
     pub events: Vec<Event>,
     pub current_job: Job,
+    pub pool: Option<DBPool>,
 }
 #[derive(Debug, PartialEq, Clone)]
 pub enum RawEvent {
     AnilistSearchEvent { query: String },
     AnilistRefreshEvent { anilist_id: u32 },
     FileIndexEvent { folder: PathBuf, depth: usize },
+    ScanLibrary { library: Library },
     Idle,
 }
 
 impl RawEvent {
-    pub fn execute(&self) {
-        match *self {
+    pub fn execute(&self, pool: Option<DBPool>) {
+        match &*self {
             Self::AnilistRefreshEvent { anilist_id: a } => println!("Anilist Refresh: {}", a),
+            Self::ScanLibrary { library } => {
+                if let Some(pool) = pool {
+                    library.crawl(&pool);
+                } else {
+                    println!("No pool provided. Library scanning unavailable")
+                }
+            }
             Self::FileIndexEvent { .. } => (),
             _ => (),
         };
@@ -44,18 +54,19 @@ pub trait QueueTrait: Send + Sync {
 
 impl Default for Queue {
     fn default() -> Self {
-        Self::new()
+        Self::new(None)
     }
 }
 
 impl Queue {
-    pub fn new() -> Self {
+    pub fn new(pool: Option<DBPool>) -> Self {
         Self {
             events: vec![],
             current_job: Job {
                 event: RawEvent::Idle,
                 finished: true,
             },
+            pool,
         }
     }
 }
@@ -74,8 +85,8 @@ impl QueueTrait for Queue {
     }
 
     fn execute_current_job(&mut self) {
+        self.current_job.event.execute(self.pool.clone());
         self.current_job.finished = true;
-        self.current_job.event.execute();
         // println!("Is job refresh: {}", outcome);
         // outcome
     }

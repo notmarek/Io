@@ -1,4 +1,8 @@
-use crate::{models::library::Library, AuthData, DBPool, ErrorResponse, Response};
+use crate::{
+    eventqueue::{QueueTrait, RawEvent},
+    models::library::Library,
+    ArcQueue, AuthData, DBPool, ErrorResponse, Response,
+};
 use actix_web::{error, web, HttpResponse};
 use serde::Deserialize;
 
@@ -51,6 +55,37 @@ async fn library(
         }
     };
     Ok(HttpResponse::Ok().json(library))
+}
+
+#[actix_web::post("/library/{library_id}/scan")]
+async fn scan_library(
+    path: web::Path<LibId>,
+    pool: web::Data<DBPool>,
+    queue: web::Data<ArcQueue>,
+    AuthData(user): AuthData,
+) -> impl actix_web::Responder {
+    if !user.has_permission_one_of(vec!["scan_library", "*_library", "administrator"]) {
+        return Err(error::ErrorForbidden(ErrorResponse {
+            status: "error".to_string(),
+            error: "missing_permissions".to_string(),
+        }));
+    }
+    match Library::get(path.library_id.clone(), &pool) {
+        Ok(u) => queue
+            .lock()
+            .unwrap()
+            .add_event(RawEvent::ScanLibrary { library: u }, 10),
+        Err(e) => {
+            return Err(error::ErrorNotFound(ErrorResponse {
+                status: "error".to_string(),
+                error: e,
+            }))
+        }
+    }
+    Ok(HttpResponse::Ok().json(Response {
+        status: "ok".to_string(),
+        data: "Started scanning",
+    }))
 }
 
 #[actix_web::delete("/library/{library_id}")]
@@ -106,5 +141,6 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(libraries)
         .service(library)
         .service(create_library)
+        .service(scan_library)
         .service(delete_library);
 }
