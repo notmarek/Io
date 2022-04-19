@@ -1,10 +1,10 @@
 use crate::{
     eventqueue::{QueueTrait, RawEvent},
-    models::library::Library,
+    models::{library::Library, file::File},
     ArcQueue, AuthData, DBPool, ErrorResponse, Response,
 };
 use actix_web::{error, web, HttpResponse};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 struct LibId {
@@ -40,11 +40,20 @@ async fn library(
     pool: web::Data<DBPool>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
+    #[derive(Serialize)]
+    struct Bruh {
+        library_info: Library,
+        files: Vec<File>,
+    }
     let library = {
         match Library::get(path.library_id.clone(), &pool) {
             Ok(u) => Response {
                 status: "ok".to_string(),
-                data: u,
+                data: Bruh {
+                    library_info: u.clone(),
+                    files: u.get_files(&pool).unwrap(),
+                },
+
             },
             Err(e) => {
                 return Err(error::ErrorNotFound(ErrorResponse {

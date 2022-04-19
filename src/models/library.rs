@@ -49,6 +49,12 @@ impl Library {
             .map_err(|_| String::from("not_found"))
     }
 
+    pub fn get_files(&self, pool: &DBPool) -> Result<Vec<crate::models::file::File>, String> {
+        let db = pool.get().unwrap();
+        use crate::schema::files::dsl::*;
+        files.filter(library_id.eq(&self.id)).get_results(&db).map_err(|_| String::from("not_found"))
+    }
+
     pub fn get_all(pool: &DBPool) -> Result<Vec<Self>, String> {
         let db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
