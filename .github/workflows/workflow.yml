@@ -87,7 +87,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nighly
+          toolchain: nightly
           override: true
       - name: Build release
         uses: actions-rs/cargo@v1
