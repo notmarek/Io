@@ -133,10 +133,10 @@ async fn login(
                     }
                 }
 
-                Err(_) => {
+                Err(e) => {
                     return HttpResponse::Unauthorized().json(ErrorResponse {
                         status: "error".to_string(),
-                        error: "invalid_user".to_string(),
+                        error: e,
                     })
                 }
             };
