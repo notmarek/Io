@@ -23,6 +23,7 @@ pub mod eventqueue;
 pub mod models;
 pub mod schema;
 pub mod utils;
+use log::error;
 
 pub type DBPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;
 pub type ArcQueue = Arc<Mutex<Queue>>;

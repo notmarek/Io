@@ -1,3 +1,4 @@
+use log::info;
 use std::path::PathBuf;
 
 use crate::{models::library::Library, DBPool};
@@ -19,12 +20,12 @@ pub enum RawEvent {
 impl RawEvent {
     pub fn execute(&self, pool: Option<DBPool>) {
         match self {
-            Self::AnilistRefreshEvent { anilist_id: a } => println!("Anilist Refresh: {}", a),
+            Self::AnilistRefreshEvent { anilist_id: a } => info!("Anilist Refresh: {}", a),
             Self::ScanLibrary { library } => {
                 if let Some(pool) = pool {
                     library.crawl(&pool);
                 } else {
-                    println!("No pool provided. Library scanning unavailable")
+                    info!("No pool provided. Library scanning unavailable")
                 }
             }
             Self::FileIndexEvent { .. } => (),
@@ -87,7 +88,7 @@ impl QueueTrait for Queue {
     fn execute_current_job(&mut self) {
         self.current_job.event.execute(self.pool.clone());
         self.current_job.finished = true;
-        println!("Job finished: {:#?}", self.current_job.event);
+        info!("Job finished: {:#?}", self.current_job.event);
     }
 
     fn update(&mut self) {
@@ -97,7 +98,7 @@ impl QueueTrait for Queue {
                 event: self.events.first().unwrap().event.clone(),
                 finished: false,
             };
-            println!("Started new job: {:#?}", self.current_job.event);
+            info!("Started new job: {:#?}", self.current_job.event);
             self.events.remove(0);
         } else if !self.is_current_job_finished() {
             self.execute_current_job();

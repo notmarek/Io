@@ -5,6 +5,7 @@ use crate::utils::indexer::crawl;
 use crate::DBPool;
 use anitomy::Anitomy;
 use diesel::prelude::*;
+use log::error;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -84,7 +85,7 @@ impl Library {
             self.id.clone(),
         ) {
             Ok(_) => (),
-            Err(e) => println!("{}", e),
+            Err(e) => error!("{}", e),
         }
     }
 }

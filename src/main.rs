@@ -2,6 +2,7 @@ use io::{
     eventqueue::{Queue, QueueTrait},
     ArcQueue,
 };
+use log::info;
 use std::{
     sync::{Arc, Mutex},
     time::Duration,
@@ -20,7 +21,7 @@ use io::Session;
 use io::{api, config::Config, DBPool};
 
 async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
-    println!("Initialized queue thread.");
+    info!("Initialized queue thread.");
     loop {
         queue.lock().unwrap().update();
         tokio::time::sleep(Duration::from_millis(125)).await;
@@ -29,7 +30,6 @@ async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "actix_web=info");
     pretty_env_logger::init();
     let conf_path = "config.json";
     let config: Config = {
