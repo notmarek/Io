@@ -1,6 +1,6 @@
 use crate::{
     eventqueue::{QueueTrait, RawEvent},
-    models::{library::Library, file::File},
+    models::{file::File, library::Library},
     ArcQueue, AuthData, DBPool, ErrorResponse, Response,
 };
 use actix_web::{error, web, HttpResponse};
@@ -53,7 +53,6 @@ async fn library(
                     library_info: u.clone(),
                     files: u.get_files(&pool).unwrap(),
                 },
-
             },
             Err(e) => {
                 return Err(error::ErrorNotFound(ErrorResponse {

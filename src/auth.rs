@@ -1,3 +1,5 @@
+use crate::AuthData;
+use crate::{config::Config, models::user::User, DBPool};
 use actix_http::HttpMessage;
 use actix_web::{dev::ServiceRequest, error, web::Data, Error};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
@@ -5,8 +7,6 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{self, decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use crate::AuthData;
-use crate::{config::Config, models::user::User, DBPool};
 
 #[derive(Serialize, Deserialize)]
 pub struct Claims {

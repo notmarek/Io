@@ -52,7 +52,10 @@ impl Library {
     pub fn get_files(&self, pool: &DBPool) -> Result<Vec<crate::models::file::File>, String> {
         let db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
-        files.filter(library_id.eq(&self.id)).get_results(&db).map_err(|_| String::from("not_found"))
+        files
+            .filter(library_id.eq(&self.id))
+            .get_results(&db)
+            .map_err(|_| String::from("not_found"))
     }
 
     pub fn get_all(pool: &DBPool) -> Result<Vec<Self>, String> {
@@ -73,7 +76,13 @@ impl Library {
 
     pub fn crawl(&self, pool: &DBPool) {
         let mut anitomy = Anitomy::new();
-        match crawl(Path::new(&self.path), self.depth, &mut anitomy, pool, self.id.clone()) {
+        match crawl(
+            Path::new(&self.path),
+            self.depth,
+            &mut anitomy,
+            pool,
+            self.id.clone(),
+        ) {
             Ok(_) => (),
             Err(e) => println!("{}", e),
         }
