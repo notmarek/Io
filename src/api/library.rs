@@ -82,7 +82,7 @@ async fn scan_library(
         Ok(u) => queue
             .lock()
             .unwrap()
-            .add_event(RawEvent::ScanLibrary { library: u }, 10),
+            .add_event(RawEvent::ScanLibraryEvent { library: u }, 10),
         Err(e) => {
             return Err(error::ErrorNotFound(ErrorResponse {
                 status: "error".to_string(),

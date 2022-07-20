@@ -21,6 +21,7 @@ pub struct File {
     pub season: Option<String>,        // season --//--
     pub episode: Option<f32>,          // episode --//--
     pub release_group: Option<String>, // group --//--
+    pub size: Option<i64>,             // file size in bytes
 }
 
 #[derive(AsChangeset, Clone)]
@@ -31,6 +32,7 @@ pub struct FileChangeset {
     pub season: Option<String>,        // season --//--
     pub episode: Option<f32>,          // episode --//--
     pub release_group: Option<String>, // group --//--
+    pub size: Option<i64>,             // file size in bytes
 }
 
 #[derive(Debug, Deserialize, Insertable, Clone)]
@@ -92,6 +94,7 @@ impl File {
             self.season = scanned.season;
             self.episode = scanned.episode;
             self.release_group = scanned.release_group;
+            self.size = scanned.size;
             let db = pool.get().unwrap();
             *self = self.save_changes::<Self>(&*db).unwrap();
         }

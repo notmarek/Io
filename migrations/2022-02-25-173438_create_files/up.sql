@@ -9,7 +9,8 @@ CREATE TABLE public.files
     title VARCHAR,
     season VARCHAR,
     episode REAL,
-    release_group VARCHAR
+    release_group VARCHAR,
+    size bigint
 )
 
 TABLESPACE pg_default;

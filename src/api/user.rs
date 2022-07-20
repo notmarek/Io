@@ -83,23 +83,20 @@ async fn login(
                 vec![],
             );
             match user.login(&dbpool, config.jwt.valid_for) {
-                Ok(claims) => {
-                    return HttpResponse::Ok().json(Tokens {
-                        status: "ok".to_string(),
-                        token_type: "Bearer".to_string(),
-                        token: claims.create_token(&config.jwt.private_key).unwrap(),
-                        refresh_token: claims
-                            .create_refresh_token(&config.jwt.private_key)
-                            .unwrap(),
-                        expiration: claims.exp,
-                    })
-                }
-                Err(e) => {
-                    return HttpResponse::Unauthorized().json(ErrorResponse {
-                        status: "error".to_string(),
-                        error: e,
-                    })
-                }
+                Ok(claims) => HttpResponse::Ok().json(Tokens {
+                    status: "ok".to_string(),
+                    token_type: "Bearer".to_string(),
+                    token: claims.create_token(&config.jwt.private_key).unwrap(),
+                    refresh_token: claims
+                        .create_refresh_token(&config.jwt.private_key)
+                        .unwrap(),
+                    expiration: claims.exp,
+                }),
+
+                Err(e) => HttpResponse::Unauthorized().json(ErrorResponse {
+                    status: "error".to_string(),
+                    error: e,
+                }),
             }
         }
         "refresh_token" => {
@@ -112,34 +109,32 @@ async fn login(
             match User::get(claims.user_id, &dbpool) {
                 Ok(u) => {
                     if u.permissions.contains(&"banned".to_string()) {
-                        return HttpResponse::Ok().json(ErrorResponse {
+                        HttpResponse::Ok().json(ErrorResponse {
                             status: "error".to_string(),
                             error: "banned_user".to_string(),
-                        });
+                        })
                     } else if claims.perms.contains(&"REFRESH".to_string()) {
                         let c = u.refresh(config.jwt.valid_for);
-                        return HttpResponse::Ok().json(Tokens {
+                        HttpResponse::Ok().json(Tokens {
                             status: "ok".to_string(),
                             token_type: "Bearer".to_string(),
                             token: c.create_token(&config.jwt.private_key).unwrap(),
                             refresh_token: c.create_refresh_token(&config.jwt.private_key).unwrap(),
                             expiration: c.exp,
-                        });
+                        })
                     } else {
-                        return HttpResponse::Ok().json(ErrorResponse {
+                        HttpResponse::Ok().json(ErrorResponse {
                             status: "error".to_string(),
                             error: "invalid_token".to_string(),
-                        });
+                        })
                     }
                 }
 
-                Err(e) => {
-                    return HttpResponse::Unauthorized().json(ErrorResponse {
-                        status: "error".to_string(),
-                        error: e,
-                    })
-                }
-            };
+                Err(e) => HttpResponse::Unauthorized().json(ErrorResponse {
+                    status: "error".to_string(),
+                    error: e,
+                }),
+            }
         }
         _ => HttpResponse::Unauthorized().json(ErrorResponse {
             status: "error".to_string(),

@@ -3,6 +3,7 @@ use crate::{
     DBPool,
 };
 use anitomy::Anitomy;
+use log::debug;
 use std::{fs, path::Path, time::SystemTime};
 
 pub fn crawl(
@@ -12,6 +13,7 @@ pub fn crawl(
     pool: &DBPool,
     library_id: String,
 ) -> Result<(), String> {
+    debug!("Scanning {}", path.to_str().unwrap());
     File::new(
         path.parent().unwrap().to_str().unwrap().to_string(),
         library_id.clone(),
@@ -75,6 +77,7 @@ pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) -> Result<FileChangese
                         .unwrap()
                         .to_string(),
                 ),
+                size: Some(metadata.len() as i64),
             });
             // println!(
             //     "It is: {} #{} by {}",

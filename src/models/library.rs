@@ -69,6 +69,12 @@ impl Library {
 
     pub fn delete(lib_id: String, pool: &DBPool) -> Result<usize, String> {
         let db = pool.get().unwrap();
+        diesel::delete(
+            crate::schema::files::dsl::files
+                .filter(crate::schema::files::dsl::library_id.eq(&lib_id)),
+        )
+        .execute(&db)
+        .map_err(|_| String::from("not_found"))?;
         use crate::schema::libraries::dsl::*;
         diesel::delete(libraries.find(&lib_id))
             .execute(&db)

@@ -10,6 +10,7 @@ table! {
         season -> Nullable<Varchar>,
         episode -> Nullable<Float4>,
         release_group -> Nullable<Varchar>,
+        size -> Nullable<Int8>,
     }
 }
 

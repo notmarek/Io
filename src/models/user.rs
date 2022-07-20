@@ -48,9 +48,10 @@ impl User {
         match users.filter(id.eq(&uuid)).first::<Self>(&db) {
             Ok(u) => {
                 if !u.has_permission_one_of(vec!["verified"]) {
-                    return Err(String::from("unverified_user"));
+                    Err(String::from("unverified_user"))
+                } else {
+                    Ok(u)
                 }
-                return Ok(u);
             }
             Err(_) => Err(String::from("invalid_user")),
         }

@@ -1,5 +1,8 @@
 use log::info;
-use std::path::PathBuf;
+use std::{
+    fmt::{Display, Formatter},
+    path::PathBuf,
+};
 
 use crate::{models::library::Library, DBPool};
 
@@ -13,7 +16,7 @@ pub enum RawEvent {
     AnilistSearchEvent { query: String },
     AnilistRefreshEvent { anilist_id: u32 },
     FileIndexEvent { folder: PathBuf, depth: usize },
-    ScanLibrary { library: Library },
+    ScanLibraryEvent { library: Library },
     Idle,
 }
 
@@ -21,7 +24,7 @@ impl RawEvent {
     pub fn execute(&self, pool: Option<DBPool>) {
         match self {
             Self::AnilistRefreshEvent { anilist_id: a } => info!("Anilist Refresh: {}", a),
-            Self::ScanLibrary { library } => {
+            Self::ScanLibraryEvent { library } => {
                 if let Some(pool) = pool {
                     library.crawl(&pool);
                 } else {
@@ -33,10 +36,43 @@ impl RawEvent {
         };
     }
 }
+
+impl Display for RawEvent {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            RawEvent::AnilistRefreshEvent { anilist_id } => {
+                write!(f, "AnilistRefresh(anilist_id: {})", anilist_id)
+            }
+            RawEvent::ScanLibraryEvent { library } => {
+                write!(f, "ScanLibrary(library_id: \"{}\")", library.id)
+            }
+            RawEvent::AnilistSearchEvent { query } => {
+                write!(f, "AnilistSearch(query: \"{}\")", query)
+            }
+            RawEvent::FileIndexEvent { folder, depth } => {
+                write!(
+                    f,
+                    "FileIndex(folder: \"{}\", depth: {})",
+                    folder.to_str().unwrap(),
+                    depth
+                )
+            }
+            RawEvent::Idle => write!(f, "Idle()"),
+            // _ => write!(f, "Unknown()"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Event {
     pub event: RawEvent,
     pub priority: usize,
+}
+
+impl Display for Event {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "Event: {} Priority: {}", self.event, self.priority)
+    }
 }
 
 #[derive(Debug)]
@@ -88,7 +124,7 @@ impl QueueTrait for Queue {
     fn execute_current_job(&mut self) {
         self.current_job.event.execute(self.pool.clone());
         self.current_job.finished = true;
-        info!("Job finished: {:#?}", self.current_job.event);
+        info!("Job finished: {}", self.current_job.event);
     }
 
     fn update(&mut self) {
@@ -98,7 +134,7 @@ impl QueueTrait for Queue {
                 event: self.events.first().unwrap().event.clone(),
                 finished: false,
             };
-            info!("Started new job: {:#?}", self.current_job.event);
+            info!("Started new job: {}", self.current_job.event);
             self.events.remove(0);
         } else if !self.is_current_job_finished() {
             self.execute_current_job();
