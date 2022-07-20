@@ -80,7 +80,6 @@ jobs:
   build:
     name: Build & release
     runs-on: ubuntu-latest
-    if: ${{ always() && !contains(join(needs.*.result, ','), 'error') }}
     needs: [check, test, fmt, clippy]
     steps:
       - name: Checkout repo
