@@ -46,9 +46,24 @@ impl User {
         let db = pool.get().unwrap();
         use crate::schema::users::dsl::*;
         match users.filter(id.eq(&uuid)).first::<Self>(&db) {
-            Ok(u) => Ok(u),
+            Ok(u) => {
+                if !u.has_permission_one_of(vec!["verified"]) {
+                    return Err(String::from("unverified_user"));
+                }
+                return Ok(u);
+            }
             Err(_) => Err(String::from("invalid_user")),
         }
+    }
+
+    pub fn get_all(limit: i64, page: i64, pool: &DBPool) -> Vec<Self> {
+        let db = pool.get().unwrap();
+        use crate::schema::users::dsl::*;
+        users
+            .limit(limit)
+            .offset((page - 1) * limit)
+            .load(&db)
+            .unwrap()
     }
 
     pub fn refresh(self, token_validity: i64) -> Claims {
@@ -94,7 +109,7 @@ impl User {
         }
     }
 
-    pub fn has_permission_one_of<T: Display>(self, perms: Vec<T>) -> bool {
+    pub fn has_permission_one_of<T: Display>(&self, perms: Vec<T>) -> bool {
         perms
             .iter()
             .any(|p| self.permissions.iter().any(|e| e == &p.to_string()))

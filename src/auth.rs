@@ -55,21 +55,27 @@ impl Claims {
     }
 }
 
-pub async fn validator(req: ServiceRequest, creds: BearerAuth) -> Result<ServiceRequest, Error> {
+pub async fn validator(
+    req: ServiceRequest,
+    creds: BearerAuth,
+) -> Result<ServiceRequest, (Error, ServiceRequest)> {
     let token = creds.token();
     let config = req.app_data::<Data<Config>>().unwrap();
     let pool = req.app_data::<Data<DBPool>>().unwrap();
-    let claims = Claims::from_token(token, &config.jwt.public_key)?;
+    let claims = match Claims::from_token(token, &config.jwt.public_key) {
+        Ok(c) => c,
+        Err(e) => return Err((e, req)),
+    };
 
     // Check if user exists/is banned
     match User::get(claims.user_id, pool) {
         Ok(u) => {
             if u.permissions.contains(&"banned".to_string()) {
-                return Err(error::ErrorUnauthorized("banned_user".to_string()));
+                return Err((error::ErrorUnauthorized("banned_user".to_string()), req));
             }
             req.extensions_mut().insert(AuthData(u));
         }
-        Err(e) => return Err(error::ErrorUnauthorized(e)),
+        Err(e) => return Err((error::ErrorUnauthorized(e), req)),
     }
 
     Ok(req)
