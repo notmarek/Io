@@ -8,7 +8,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Queryable, Deserialize, Serialize, Insertable, Clone, PartialEq)]
+#[derive(Debug, Queryable, Deserialize, Serialize, Insertable, Clone, PartialEq, Eq)]
 #[table_name = "libraries"]
 pub struct Library {
     pub id: String,

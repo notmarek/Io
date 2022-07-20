@@ -7,7 +7,7 @@ pub struct Queue {
     pub current_job: Job,
     pub pool: Option<DBPool>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum RawEvent {
     AnilistSearchEvent { query: String },
     AnilistRefreshEvent { anilist_id: u32 },
@@ -18,7 +18,7 @@ pub enum RawEvent {
 
 impl RawEvent {
     pub fn execute(&self, pool: Option<DBPool>) {
-        match &*self {
+        match self {
             Self::AnilistRefreshEvent { anilist_id: a } => println!("Anilist Refresh: {}", a),
             Self::ScanLibrary { library } => {
                 if let Some(pool) = pool {
