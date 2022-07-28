@@ -5,6 +5,7 @@ use actix_web::FromRequest;
 use actix_web::HttpMessage;
 use actix_web::HttpRequest;
 use actix_web::ResponseError;
+use actix_web::HttpResponse;
 use eventqueue::Queue;
 use futures::future::{ready, Ready};
 use serde::Serialize;
@@ -62,6 +63,11 @@ pub struct Unauthorized;
 impl ResponseError for Unauthorized {
     fn status_code(&self) -> actix_http::StatusCode {
         actix_http::StatusCode::UNAUTHORIZED
+    }
+    fn error_response(&self) -> HttpResponse {
+        HttpResponse::build(self.status_code())
+            .insert_header(actix_web::http::header::ContentType::json())
+            .body(format!(r#"{{ "status": "error", "error": "{}" }}"#r, self.to_string()))
     }
 }
 
