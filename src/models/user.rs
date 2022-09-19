@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Queryable, Serialize, Deserialize, Insertable, Clone)]
-#[table_name = "users"]
+#[diesel(table_name = users)]
 pub struct User {
     pub id: String,
     pub username: String,
@@ -43,9 +43,9 @@ impl User {
     }
 
     pub fn get(uuid: String, pool: &DBPool) -> Result<Self, String> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::users::dsl::*;
-        match users.filter(id.eq(&uuid)).first::<Self>(&db) {
+        match users.filter(id.eq(&uuid)).first::<Self>(&mut db) {
             Ok(u) => {
                 if !u.has_permission_one_of(vec!["verified"]) {
                     Err(String::from("unverified_user"))
@@ -58,12 +58,12 @@ impl User {
     }
 
     pub fn get_all(limit: i64, page: i64, pool: &DBPool) -> Vec<Self> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::users::dsl::*;
         users
             .limit(limit)
             .offset((page - 1) * limit)
-            .load(&db)
+            .load(&mut db)
             .unwrap()
     }
 
@@ -72,10 +72,10 @@ impl User {
     }
 
     pub fn login(mut self, pool: &DBPool, token_validity: i64) -> Result<Claims, String> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         let raw_password = self.password;
         use crate::schema::users::dsl::*;
-        match users.filter(username.eq(&self.username)).first::<Self>(&db) {
+        match users.filter(username.eq(&self.username)).first::<Self>(&mut db) {
             Ok(u) => {
                 self = u;
                 if !verify_encoded(&self.password, raw_password.as_bytes()).unwrap() {
@@ -93,15 +93,15 @@ impl User {
         pool: &DBPool,
         token_validity: i64,
     ) -> Result<Claims, String> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::users::dsl::*;
-        match users.filter(username.eq(&self.username)).first::<Self>(&db) {
+        match users.filter(username.eq(&self.username)).first::<Self>(&mut db) {
             Ok(_) => Err(String::from("username_exists")),
             Err(_) => {
                 self.password = hash_password(self.password, salt);
                 match diesel::insert_into(users)
                     .values(self.clone())
-                    .get_result::<Self>(&db)
+                    .get_result::<Self>(&mut db)
                 {
                     Ok(_) => Ok(Claims::new(self.id, self.permissions, token_validity)),
                     Err(e) => Err(format!("{}", e)),

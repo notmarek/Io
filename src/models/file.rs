@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Queryable, Serialize, Clone, Identifiable, AsChangeset)]
-#[table_name = "files"]
+#[diesel(table_name = files)]
 pub struct File {
     pub id: String,
     pub parent: String,                // parent folder in relation to library root
@@ -25,7 +25,7 @@ pub struct File {
 }
 
 #[derive(AsChangeset, Clone)]
-#[table_name = "files"]
+#[diesel(table_name = files)]
 pub struct FileChangeset {
     pub last_update: i64,              // unix timestamp of last update
     pub title: Option<String>,         // title extracted with Anitomy
@@ -36,7 +36,7 @@ pub struct FileChangeset {
 }
 
 #[derive(Debug, Deserialize, Insertable, Clone)]
-#[table_name = "files"]
+#[diesel(table_name = files)]
 pub struct NewFile {
     pub id: String,
     pub parent: String,     // parent folder in relation to library root
@@ -54,9 +54,9 @@ impl File {
         f_folder: bool,
         pool: &DBPool,
     ) -> Self {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
-        match files.filter(path.eq(&f_path)).first::<Self>(&db) {
+        match files.filter(path.eq(&f_path)).first::<Self>(&mut db) {
             Ok(l) => l,
             Err(_) => {
                 match diesel::insert_into(files)
@@ -68,7 +68,7 @@ impl File {
                         folder: f_folder,
                         last_update: 0,
                     })
-                    .get_result::<Self>(&db)
+                    .get_result::<Self>(&mut db)
                 {
                     Ok(l) => l,
                     Err(e) => panic!("What the fuck man. {}", e),
@@ -78,11 +78,11 @@ impl File {
     }
 
     pub fn get(fid: String, pool: &DBPool) -> Result<Self, String> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
         files
             .filter(id.eq(fid))
-            .first::<Self>(&db)
+            .first::<Self>(&mut db)
             .map_err(|_| String::from("not_found"))
     }
 
@@ -95,19 +95,19 @@ impl File {
             self.episode = scanned.episode;
             self.release_group = scanned.release_group;
             self.size = scanned.size;
-            let db = pool.get().unwrap();
-            *self = self.save_changes::<Self>(&*db).unwrap();
+            let mut db = pool.get().unwrap();
+            *self = self.save_changes::<Self>(&mut *db).unwrap();
         }
 
         todo!("handle errors in scan_file")
     }
 
     pub fn get_folder_content(&self, pool: &DBPool) -> Vec<Self> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
         files
             .filter(parent.eq(path))
-            .get_results::<Self>(&db)
+            .get_results::<Self>(&mut db)
             .unwrap()
     }
 }

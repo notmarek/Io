@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Queryable, Deserialize, Serialize, Insertable, Clone, PartialEq, Eq)]
-#[table_name = "libraries"]
+#[diesel(table_name = libraries)]
 pub struct Library {
     pub id: String,
     pub path: String, // library root
@@ -20,9 +20,9 @@ pub struct Library {
 
 impl Library {
     pub fn new(lib_path: String, lib_depth: i32, pool: &DBPool) -> Self {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
-        match libraries.filter(path.eq(&lib_path)).first::<Self>(&db) {
+        match libraries.filter(path.eq(&lib_path)).first::<Self>(&mut db) {
             Ok(l) => l,
             Err(_) => {
                 match diesel::insert_into(libraries)
@@ -32,7 +32,7 @@ impl Library {
                         depth: lib_depth,
                         last_scan: 0,
                     })
-                    .get_result::<Self>(&db)
+                    .get_result::<Self>(&mut db)
                 {
                     Ok(l) => l,
                     Err(_) => panic!("What the fuck man."),
@@ -42,42 +42,42 @@ impl Library {
     }
 
     pub fn get(lib_id: String, pool: &DBPool) -> Result<Self, String> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
         libraries
             .filter(id.eq(&lib_id))
-            .first::<Self>(&db)
+            .first::<Self>(&mut db)
             .map_err(|_| String::from("not_found"))
     }
 
     pub fn get_files(&self, pool: &DBPool) -> Result<Vec<crate::models::file::File>, String> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
         files
             .filter(library_id.eq(&self.id))
-            .get_results(&db)
+            .get_results(&mut db)
             .map_err(|_| String::from("not_found"))
     }
 
     pub fn get_all(pool: &DBPool) -> Result<Vec<Self>, String> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
         libraries
-            .load::<Self>(&db)
+            .load::<Self>(&mut db)
             .map_err(|_| String::from("unknown_error"))
     }
 
     pub fn delete(lib_id: String, pool: &DBPool) -> Result<usize, String> {
-        let db = pool.get().unwrap();
+        let mut db = pool.get().unwrap();
         diesel::delete(
             crate::schema::files::dsl::files
                 .filter(crate::schema::files::dsl::library_id.eq(&lib_id)),
         )
-        .execute(&db)
+        .execute(&mut db)
         .map_err(|_| String::from("not_found"))?;
         use crate::schema::libraries::dsl::*;
         diesel::delete(libraries.find(&lib_id))
-            .execute(&db)
+            .execute(&mut db)
             .map_err(|_| String::from("not_found"))
     }
 
