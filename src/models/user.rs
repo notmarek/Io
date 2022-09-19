@@ -75,7 +75,10 @@ impl User {
         let mut db = pool.get().unwrap();
         let raw_password = self.password;
         use crate::schema::users::dsl::*;
-        match users.filter(username.eq(&self.username)).first::<Self>(&mut db) {
+        match users
+            .filter(username.eq(&self.username))
+            .first::<Self>(&mut db)
+        {
             Ok(u) => {
                 self = u;
                 if !verify_encoded(&self.password, raw_password.as_bytes()).unwrap() {
@@ -95,7 +98,10 @@ impl User {
     ) -> Result<Claims, String> {
         let mut db = pool.get().unwrap();
         use crate::schema::users::dsl::*;
-        match users.filter(username.eq(&self.username)).first::<Self>(&mut db) {
+        match users
+            .filter(username.eq(&self.username))
+            .first::<Self>(&mut db)
+        {
             Ok(_) => Err(String::from("username_exists")),
             Err(_) => {
                 self.password = hash_password(self.password, salt);
