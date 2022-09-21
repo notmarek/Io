@@ -1,6 +1,9 @@
 {
     "address": "127.0.0.1",
     "port": 1337,
+    "sources": {
+        "tmdb": "V4 bearer token"
+    },
     "folders": [
         {
             "path": "/home/pi/drives/X/Animu",

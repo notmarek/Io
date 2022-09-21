@@ -9,7 +9,7 @@ use std::{fs, path::Path, time::SystemTime};
 pub fn crawl(
     path: &Path,
     depth_ttl: i32,
-    anitomy: &mut Anitomy,
+    _anitomy: &mut Anitomy,
     pool: &DBPool,
     library_id: String,
 ) -> Result<(), String> {
@@ -32,7 +32,7 @@ pub fn crawl(
             let entry = entry.map_err(|_| String::from("the entry is broken bruyh"))?;
             let path = entry.path();
             if depth_ttl != 0 {
-                crawl(&path, depth_ttl - 1, anitomy, pool, library_id.clone())?;
+                crawl(&path, depth_ttl - 1, _anitomy, pool, library_id.clone())?;
             }
         }
     }
