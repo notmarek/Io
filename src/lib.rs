@@ -20,11 +20,11 @@ extern crate pretty_env_logger;
 pub mod api;
 pub mod auth;
 pub mod config;
+pub mod data_sources;
 pub mod eventqueue;
 pub mod models;
 pub mod schema;
 pub mod utils;
-pub mod data_sources;
 use log::error;
 
 pub type DBPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;

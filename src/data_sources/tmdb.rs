@@ -44,16 +44,21 @@ impl TMDB {
     }
 
     pub async fn search(&self, query: &str) -> Option<TMDBSearchResponse> {
-
-        let res = self.client.get("https://api.themoviedb.org/3/search/multi").bearer_auth(&self.token).query(&[(&"query", query)]).send().await;
+        let res = self
+            .client
+            .get("https://api.themoviedb.org/3/search/multi")
+            .bearer_auth(&self.token)
+            .query(&[(&"query", query)])
+            .send()
+            .await;
         match res {
             Ok(r) => {
                 let data = r.json::<TMDBSearchResponse>().await;
                 match data {
                     Ok(response) => Some(response),
-                    Err(_) => None
+                    Err(_) => None,
                 }
-            },
+            }
             Err(_) => None,
         }
     }

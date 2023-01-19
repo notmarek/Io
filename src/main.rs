@@ -2,8 +2,10 @@ use io::{
     eventqueue::{Queue, QueueTrait},
     ArcQueue,
 };
-use log::info;
+use log::{debug, info};
 use std::{
+    env,
+    str::FromStr,
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -16,7 +18,6 @@ use diesel::{
     r2d2::{ConnectionManager, Pool},
 };
 use io::Session;
-
 // use io::utils::indexer::test_kool;
 use io::{api, config::Config, DBPool};
 
@@ -30,8 +31,17 @@ async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    pretty_env_logger::init();
+    pretty_env_logger::formatted_builder()
+        .filter_level(
+            log::LevelFilter::from_str(
+                &env::var("RUST_LOG").unwrap_or_else(|_| String::from("info")),
+            )
+            .unwrap_or(log::LevelFilter::Trace),
+        )
+        .init();
+    debug!("Initalized logger!");
     let conf_path = "config.json";
+    info!("Looking for config.json in current directory.");
     let config: Config = {
         let conf = std::fs::read_to_string(conf_path)?;
         serde_json::from_str(&conf)?
