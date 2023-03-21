@@ -26,6 +26,7 @@ pub mod models;
 pub mod schema;
 pub mod utils;
 use log::error;
+use utoipa::ToSchema;
 
 pub type DBPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;
 pub type ArcQueue = Arc<Mutex<Queue>>;
@@ -36,6 +37,7 @@ pub struct Response<T: Serialize> {
     data: T,
 }
 
+#[derive(ToSchema)]
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
     status: String,

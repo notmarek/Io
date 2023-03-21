@@ -6,7 +6,9 @@ use crate::DBPool;
 use crate::ErrorResponse;
 use actix_web::{error, web, HttpResponse};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
+#[derive(ToSchema)]
 #[derive(Serialize, Deserialize)]
 pub struct Tokens {
     status: String,
@@ -28,6 +30,7 @@ pub struct UserRequest {
     pub private: Option<String>,     // TODO: account privacy settings
 }
 
+#[derive(ToSchema)]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RegisterRequest {
     pub username: String,
@@ -40,6 +43,18 @@ pub struct LimitQuery {
     pub page: Option<i64>,
 }
 
+#[utoipa::path(
+    put,
+    path = "/user",
+    responses(
+        (status = 200, description = "Account created succesfully", body = Tokens),
+        (status = 406, description = "Couldn't create an account", body = ErrorResponse)
+    ),
+    params(
+        ("username" = String, Query, description = "desired username"),
+        ("password" = String, Query, description = "desired password"),
+    )
+)]
 #[actix_web::put("/user")]
 async fn register(
     config: web::Data<Config>,

@@ -3,6 +3,7 @@ use io::{
     ArcQueue,
 };
 use log::{debug, info};
+use utoipa_swagger_ui::SwaggerUi;
 use std::{
     env,
     str::FromStr,
@@ -21,6 +22,9 @@ use io::Session;
 // use io::utils::indexer::test_kool;
 use io::{api, config::Config, DBPool};
 
+use utoipa::OpenApi;
+
+
 async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
     info!("Initialized queue thread.");
     loop {
@@ -31,6 +35,10 @@ async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    #[derive(OpenApi)]
+    #[openapi(paths(io::api::user::register), components(schemas(io::ErrorResponse, io::api::user::RegisterRequest, io::api::user::Tokens)))]
+    struct ApiDoc;
+
     pretty_env_logger::formatted_builder()
         .filter_level(
             log::LevelFilter::from_str(
@@ -79,6 +87,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(pool))
             .app_data(Data::new(session_info))
             .app_data(Data::new(queue.clone()))
+            .service(SwaggerUi::new("/swagger/{_:.*}").url("/api-doc/openapi.json", ApiDoc::openapi()),)
             .wrap({
                 if let Some(cors_conf) = &cors {
                     let cors = Cors::default()
