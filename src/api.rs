@@ -1,9 +1,9 @@
 use actix_web::{middleware::Compat, web};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
-mod file;
-mod info;
-mod library;
+pub mod file;
+pub mod info;
+pub mod library;
 pub mod user;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {

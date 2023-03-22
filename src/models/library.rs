@@ -7,9 +7,10 @@ use anitomy::Anitomy;
 use diesel::prelude::*;
 use log::error;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Queryable, Deserialize, Serialize, Insertable, Clone, PartialEq, Eq)]
+#[derive(Debug, Queryable, Deserialize, Serialize, Insertable, Clone, PartialEq, Eq, ToSchema)]
 #[diesel(table_name = libraries)]
 pub struct Library {
     pub id: String,

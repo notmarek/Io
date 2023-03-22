@@ -3,15 +3,28 @@ use crate::{
     models::{file::File, library::Library},
     ArcQueue, AuthData, DBPool, ErrorResponse, Response,
 };
+use actix_web::{delete, get, post, put};
 use actix_web::{error, web, HttpResponse};
 use serde::{Deserialize, Serialize};
+use utoipa::{self, IntoParams, ToSchema};
 
-#[derive(Deserialize)]
-struct LibId {
+#[derive(IntoParams, Deserialize)]
+pub struct LibId {
     library_id: String,
 }
 
-#[actix_web::get("/library/all")]
+/// List all libraries
+#[utoipa::path(
+    tag = "Library",
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Returns a response with an array of libraries.", body = Response<Vec<Library>>),
+        (status = 401, description = "Access denied.", body = ErrorResponse),
+        (status = 404, description = "Not found.", body = ErrorResponse)
+    ),
+    security(("token" = []))
+)]
+#[get("/library/all")]
 async fn libraries(
     pool: web::Data<DBPool>,
     AuthData(_user): AuthData,
@@ -34,7 +47,19 @@ async fn libraries(
     Ok(HttpResponse::Ok().json(libraries))
 }
 
-#[actix_web::get("/library/{library_id}")]
+/// Get a library by id
+#[utoipa::path(
+    tag = "Library",
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Returns a response with a library and its contents.", body = Response<Library>),
+        (status = 401, description = "Access denied.", body = ErrorResponse),
+        (status = 404, description = "Not found.", body = ErrorResponse)
+    ),
+    params(LibId),
+    security(("token" = []))
+)]
+#[get("/library/{library_id}")]
 async fn library(
     path: web::Path<LibId>,
     pool: web::Data<DBPool>,
@@ -65,7 +90,19 @@ async fn library(
     Ok(HttpResponse::Ok().json(library))
 }
 
-#[actix_web::post("/library/{library_id}/scan")]
+/// Start a library scan
+#[utoipa::path(
+    tag = "Library",
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Returns a response confirming scan.", body = Response),
+        (status = 401, description = "Access denied.", body = ErrorResponse),
+        (status = 404, description = "Not found.", body = ErrorResponse)
+    ),
+    params(LibId),
+    security(("token" = []))
+)]
+#[post("/library/{library_id}/scan")]
 async fn scan_library(
     path: web::Path<LibId>,
     pool: web::Data<DBPool>,
@@ -96,7 +133,19 @@ async fn scan_library(
     }))
 }
 
-#[actix_web::delete("/library/{library_id}")]
+/// Delete a library
+#[utoipa::path(
+    tag = "Library",
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Returns a response confirming deletion.", body = Response),
+        (status = 401, description = "Access denied.", body = ErrorResponse),
+        (status = 404, description = "Not found.", body = ErrorResponse)
+    ),
+    params(LibId),
+    security(("token" = []))
+)]
+#[delete("/library/{library_id}")]
 async fn delete_library(
     path: web::Path<LibId>,
     pool: web::Data<DBPool>,
@@ -120,13 +169,24 @@ async fn delete_library(
     }
 }
 
-#[derive(Deserialize)]
-struct Lib {
+#[derive(Deserialize, ToSchema)]
+pub struct Lib {
     path: String,
     depth: i32,
 }
 
-#[actix_web::put("/library")]
+/// Create a library
+#[utoipa::path(
+    tag = "Library",
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Returns a response including the newly created library", body = Response<Library>),
+        (status = 401, description = "Access denied.", body = ErrorResponse),
+    ),
+    request_body(content = Lib, description = "Data needed to create a library.", content_type = "application/json"),
+    security(("token" = []))
+)]
+#[put("/library")]
 async fn create_library(
     data: web::Json<Lib>,
     pool: web::Data<DBPool>,

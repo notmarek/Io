@@ -32,7 +32,7 @@ use utoipa::ToSchema;
 pub type DBPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;
 pub type ArcQueue = Arc<Mutex<Queue>>;
 
-#[derive(Debug, Serialize)]
+#[derive(ToSchema, Debug, Serialize)]
 pub struct Response<T: Serialize> {
     status: String,
     data: T,

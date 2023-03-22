@@ -5,9 +5,9 @@ use crate::AuthData;
 use crate::DBPool;
 use crate::ErrorResponse;
 use actix_web::{error, web, HttpResponse};
+use actix_web::{get, post, put};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
-use actix_web::{get, post, put};
 
 #[derive(ToSchema, Serialize, Deserialize)]
 pub struct Tokens {
@@ -42,7 +42,10 @@ pub struct LimitQuery {
     pub page: Option<i64>,
 }
 
+/// Register
+/// Let's you register a new user account
 #[utoipa::path(
+    tag = "User",
     context_path = "/na",
     responses(
         (status = 200, description = "Account created succesfully", body = Tokens),
@@ -74,7 +77,11 @@ async fn register(
     }
 }
 
+/// Login
+/// Let's you login using your password
+/// or refresh your token with the refresh token
 #[utoipa::path(
+    tag = "User",
     context_path = "/na",
     responses(
         (status = 200, description = "Logged in.", body = Tokens),
@@ -161,7 +168,9 @@ struct Uid {
     user_id: String,
 }
 
+/// Get User By ID
 #[utoipa::path(
+    tag = "User",
     context_path = "/api",
     responses(
         (status = 200, description = "Returns a user.", body = User),
@@ -201,7 +210,9 @@ async fn user_info(
     Ok(HttpResponse::Ok().json(user_info))
 }
 
+/// Get a list of all users
 #[utoipa::path(
+    tag = "User",
     context_path = "/api",
     responses(
         (status = 200, description = "Returns a user.", body = [User]),
