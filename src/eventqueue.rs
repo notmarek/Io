@@ -41,20 +41,19 @@ impl Display for RawEvent {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             RawEvent::AnilistRefreshEvent { anilist_id } => {
-                write!(f, "AnilistRefresh(anilist_id: {})", anilist_id)
+                write!(f, "AnilistRefresh(anilist_id: {anilist_id})")
             }
             RawEvent::ScanLibraryEvent { library } => {
                 write!(f, "ScanLibrary(library_id: \"{}\")", library.id)
             }
             RawEvent::AnilistSearchEvent { query } => {
-                write!(f, "AnilistSearch(query: \"{}\")", query)
+                write!(f, "AnilistSearch(query: \"{query}\")")
             }
             RawEvent::FileIndexEvent { folder, depth } => {
                 write!(
                     f,
-                    "FileIndex(folder: \"{}\", depth: {})",
-                    folder.to_str().unwrap(),
-                    depth
+                    "FileIndex(folder: \"{}\", depth: {depth})",
+                    folder.to_str().unwrap()
                 )
             }
             RawEvent::Idle => write!(f, "Idle()"),

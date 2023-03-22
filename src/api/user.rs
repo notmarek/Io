@@ -6,10 +6,10 @@ use crate::DBPool;
 use crate::ErrorResponse;
 use actix_web::{error, web, HttpResponse};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
+use actix_web::{get, post, put};
 
-#[derive(ToSchema)]
-#[derive(Serialize, Deserialize)]
+#[derive(ToSchema, Serialize, Deserialize)]
 pub struct Tokens {
     status: String,
     token_type: String,
@@ -18,20 +18,19 @@ pub struct Tokens {
     expiration: i64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(ToSchema, Serialize, Deserialize, Debug)]
 pub struct UserRequest {
     pub username: Option<String>,
     pub password: Option<String>,
     pub refresh_token: Option<String>,
-    pub identifier: Option<String>,
+    pub identifier: String,
     pub captcha: Option<String>,     // TODO: captcha integration
     pub invite: Option<String>,      // TODO: invite system
     pub newpassword: Option<String>, // TODO: password changing
     pub private: Option<String>,     // TODO: account privacy settings
 }
 
-#[derive(ToSchema)]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(ToSchema, Serialize, Deserialize, Debug)]
 pub struct RegisterRequest {
     pub username: String,
     pub password: String,
@@ -44,18 +43,14 @@ pub struct LimitQuery {
 }
 
 #[utoipa::path(
-    put,
-    path = "/user",
+    context_path = "/na",
     responses(
         (status = 200, description = "Account created succesfully", body = Tokens),
         (status = 406, description = "Couldn't create an account", body = ErrorResponse)
     ),
-    params(
-        ("username" = String, Query, description = "desired username"),
-        ("password" = String, Query, description = "desired password"),
-    )
+    request_body(content = RegisterRequest, description = "Registration request", content_type = "application/json"),
 )]
-#[actix_web::put("/user")]
+#[put("/user")]
 async fn register(
     config: web::Data<Config>,
     dbpool: web::Data<DBPool>,
@@ -79,18 +74,21 @@ async fn register(
     }
 }
 
-#[actix_web::post("/user")]
+#[utoipa::path(
+    context_path = "/na",
+    responses(
+        (status = 200, description = "Logged in.", body = Tokens),
+        (status = 401, description = "Couldn't login successfully - see error", body = ErrorResponse)
+    ),
+    request_body(content = UserRequest, description = "Login request", content_type = "application/json"),
+)]
+#[post("/user")]
 async fn login(
     config: web::Data<Config>,
     dbpool: web::Data<DBPool>,
     req_data: web::Json<UserRequest>,
 ) -> impl actix_web::Responder {
-    match req_data
-        .identifier
-        .as_ref()
-        .unwrap_or(&String::new())
-        .as_str()
-    {
+    match req_data.identifier.as_str() {
         "password" => {
             let user = User::new(
                 req_data.username.clone().unwrap(),
@@ -124,7 +122,7 @@ async fn login(
             match User::get(claims.user_id, &dbpool) {
                 Ok(u) => {
                     if u.permissions.contains(&"banned".to_string()) {
-                        HttpResponse::Ok().json(ErrorResponse {
+                        HttpResponse::Unauthorized().json(ErrorResponse {
                             status: "error".to_string(),
                             error: "banned_user".to_string(),
                         })
@@ -138,7 +136,7 @@ async fn login(
                             expiration: c.exp,
                         })
                     } else {
-                        HttpResponse::Ok().json(ErrorResponse {
+                        HttpResponse::Unauthorized().json(ErrorResponse {
                             status: "error".to_string(),
                             error: "invalid_token".to_string(),
                         })
@@ -158,12 +156,21 @@ async fn login(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(IntoParams, Deserialize)]
 struct Uid {
     user_id: String,
 }
 
-#[actix_web::get("/user/{user_id}")]
+#[utoipa::path(
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Returns a user.", body = User),
+        (status = 404, description = "No such user found", body = ErrorResponse)
+    ),
+    params(Uid),
+    security(("token" = []))
+)]
+#[get("/user/{user_id}")]
 async fn user_info(
     path: web::Path<Uid>,
     AuthData(user): AuthData,
@@ -194,7 +201,15 @@ async fn user_info(
     Ok(HttpResponse::Ok().json(user_info))
 }
 
-#[actix_web::get("/users")]
+#[utoipa::path(
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Returns a user.", body = [User]),
+        (status = 401, description = "Access denied.", body = ErrorResponse)
+    ),
+    security(("token" = []))
+)]
+#[get("/users")]
 async fn user_list(
     AuthData(user): AuthData,
     pool: web::Data<DBPool>,

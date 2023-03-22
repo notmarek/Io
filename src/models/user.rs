@@ -6,9 +6,10 @@ use crate::DBPool;
 use argon2::{self, hash_encoded, verify_encoded, Config, ThreadMode, Variant, Version};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Queryable, Serialize, Deserialize, Insertable, Clone)]
+#[derive(ToSchema, Debug, Queryable, Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = users)]
 pub struct User {
     pub id: String,
@@ -110,7 +111,7 @@ impl User {
                     .get_result::<Self>(&mut db)
                 {
                     Ok(_) => Ok(Claims::new(self.id, self.permissions, token_validity)),
-                    Err(e) => Err(format!("{}", e)),
+                    Err(e) => Err(e.to_string()),
                 }
             }
         }

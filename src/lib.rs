@@ -21,6 +21,7 @@ pub mod api;
 pub mod auth;
 pub mod config;
 pub mod data_sources;
+pub mod docs;
 pub mod eventqueue;
 pub mod models;
 pub mod schema;
@@ -37,8 +38,7 @@ pub struct Response<T: Serialize> {
     data: T,
 }
 
-#[derive(ToSchema)]
-#[derive(Debug, Serialize)]
+#[derive(ToSchema, Debug, Serialize)]
 pub struct ErrorResponse {
     status: String,
     error: String,
@@ -70,7 +70,7 @@ impl ResponseError for Unauthorized {
     fn error_response(&self) -> HttpResponse {
         HttpResponse::build(self.status_code())
             .insert_header(actix_web::http::header::ContentType::json())
-            .body(format!(r#"{{ "status": "error", "error": "{}" }}"#, self))
+            .body(format!(r#"{{ "status": "error", "error": "{self}" }}"#))
     }
 }
 
