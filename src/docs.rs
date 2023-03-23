@@ -16,6 +16,8 @@ use utoipa::{
         api::library::create_library,
         api::library::scan_library,
         api::library::delete_library,
+        api::info::info,
+        api::file::file,
     ),
     components(
         schemas(
@@ -25,6 +27,7 @@ use utoipa::{
             api::user::UserRequest,
             api::user::RegisterRequest,
             api::library::Lib,
+            api::info::Info,
             models::user::User,
             models::library::Library,
             T,

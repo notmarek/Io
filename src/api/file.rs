@@ -1,8 +1,9 @@
 use crate::{models::file::File, AuthData, DBPool, ErrorResponse, Response};
-use actix_web::{error, web, HttpResponse};
+use actix_web::{error, get, web, HttpResponse};
 use serde::Deserialize;
+use utoipa::{self, IntoParams};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, IntoParams)]
 struct FileId {
     file_id: String,
 }
@@ -13,7 +14,18 @@ impl FileId {
     }
 }
 
-#[actix_web::get("/file/{file_id}")]
+#[utoipa::path(
+    tag = "File",
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Returns a response confirming deletion.", body = Response),
+        (status = 401, description = "Access denied.", body = ErrorResponse),
+        (status = 404, description = "Not found.", body = ErrorResponse)
+    ),
+    params(FileId),
+    security(("token" = []))
+)]
+#[get("/file/{file_id}")]
 async fn file(
     fid: web::Path<FileId>,
     pool: web::Data<DBPool>,
