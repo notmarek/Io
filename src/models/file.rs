@@ -71,7 +71,7 @@ impl File {
                     .get_result::<Self>(&mut db)
                 {
                     Ok(l) => l,
-                    Err(e) => panic!("What the fuck man. {}", e),
+                    Err(e) => panic!("What the fuck man. {e}"),
                 }
             }
         }
