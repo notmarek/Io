@@ -15,20 +15,20 @@ use sea_orm_migration::prelude::*;
 
 
 #[derive(DeriveMigrationName)]
-pub struct LibrariesMigration;
+pub struct Migration;
 
 #[async_trait::async_trait]
-impl MigrationTrait for LibrariesMigration {
+impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .create_table(
                 Table::create()
                     .table(Library::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(Library::Id).string().not_null().primary_key())
+                    .col(ColumnDef::new(Library::Id).uuid().not_null().primary_key())
                     .col(ColumnDef::new(Library::Path).string().not_null())
                     .col(ColumnDef::new(Library::Depth).integer().not_null())
-                    .col(ColumnDef::new(Library::LastScan).integer().not_null())
+                    .col(ColumnDef::new(Library::LastScan).timestamp().not_null())
                     .to_owned(),
             )
             .await
@@ -42,7 +42,7 @@ impl MigrationTrait for LibrariesMigration {
 }
 
 #[derive(Iden)]
-enum Library {
+pub enum Library {
     Table,
     Id,
     Path,

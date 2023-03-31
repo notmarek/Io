@@ -14,17 +14,17 @@ use sea_orm_migration::prelude::*;
 //     OWNER to postgres;
 
 #[derive(DeriveMigrationName)]
-pub struct UsersMigration;
+pub struct Migration;
 
 #[async_trait::async_trait]
-impl MigrationTrait for UsersMigration {
+impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .create_table(
                 Table::create()
                     .table(User::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(User::Id).string().not_null().primary_key())
+                    .col(ColumnDef::new(User::Id).uuid().not_null().primary_key())
                     .col(ColumnDef::new(User::Username).string().not_null())
                     .col(ColumnDef::new(User::Password).string().not_null())
                     .col(ColumnDef::new(User::Permissions).string().not_null())

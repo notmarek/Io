@@ -6,7 +6,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [workspace]
-members = [".", "entity", "migration"]
+members = [".", "migration"]
 
 [dependencies]
 # actix - web framework
@@ -45,7 +45,7 @@ diesel = { version = "2", features = ["postgres", "r2d2"] }
 rust-argon2 = "1.0"
 
 # uuid - uuid generation
-uuid = { version = "1", features = ["v4"] }
+uuid = { version = "1", features = ["v4", "fast-rng", "macro-diagnostics"] }
 
 # sysinfo - system info
 sysinfo = "0.28"
