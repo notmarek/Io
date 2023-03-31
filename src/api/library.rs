@@ -1,7 +1,7 @@
 use crate::{
     eventqueue::{QueueTrait, RawEvent},
     models::{file::File, library::Library},
-    ArcQueue, AuthData, DBPool, ErrorResponse, Response,
+    ArcQueue, AuthData, DatabaseConnection, ErrorResponse, Response,
 };
 use actix_web::{delete, get, post, put};
 use actix_web::{error, web, HttpResponse};
@@ -26,7 +26,7 @@ pub struct LibId {
 )]
 #[get("/library/all")]
 async fn libraries(
-    pool: web::Data<DBPool>,
+    pool: web::Data<DatabaseConnection>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
     let libraries = {
@@ -62,7 +62,7 @@ async fn libraries(
 #[get("/library/{library_id}")]
 async fn library(
     path: web::Path<LibId>,
-    pool: web::Data<DBPool>,
+    pool: web::Data<DatabaseConnection>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
     #[derive(Serialize)]
@@ -105,7 +105,7 @@ async fn library(
 #[post("/library/{library_id}/scan")]
 async fn scan_library(
     path: web::Path<LibId>,
-    pool: web::Data<DBPool>,
+    pool: web::Data<DatabaseConnection>,
     queue: web::Data<ArcQueue>,
     AuthData(user): AuthData,
 ) -> impl actix_web::Responder {
@@ -148,7 +148,7 @@ async fn scan_library(
 #[delete("/library/{library_id}")]
 async fn delete_library(
     path: web::Path<LibId>,
-    pool: web::Data<DBPool>,
+    pool: web::Data<DatabaseConnection>,
     AuthData(user): AuthData,
 ) -> impl actix_web::Responder {
     if !user.has_permission_one_of(vec!["delete_library", "*_library", "administrator"]) {
@@ -189,7 +189,7 @@ pub struct Lib {
 #[put("/library")]
 async fn create_library(
     data: web::Json<Lib>,
-    pool: web::Data<DBPool>,
+    pool: web::Data<DatabaseConnection>,
     AuthData(user): AuthData,
 ) -> impl actix_web::Responder {
     if !user.has_permission_one_of(vec!["create_library", "*_library", "administrator"]) {

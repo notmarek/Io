@@ -4,12 +4,12 @@ use std::{
     path::PathBuf,
 };
 
-use crate::{models::library::Library, DBPool};
+use crate::{models::library::Library, DatabaseConnection};
 
 pub struct Queue {
     pub events: Vec<Event>,
     pub current_job: Job,
-    pub pool: Option<DBPool>,
+    pub pool: Option<DatabaseConnection>,
 }
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum RawEvent {
@@ -21,7 +21,7 @@ pub enum RawEvent {
 }
 
 impl RawEvent {
-    pub fn execute(&self, pool: Option<DBPool>) {
+    pub fn execute(&self, pool: Option<DatabaseConnection>) {
         match self {
             Self::AnilistRefreshEvent { anilist_id: a } => info!("Anilist Refresh: {}", a),
             Self::ScanLibraryEvent { library } => {
@@ -95,7 +95,7 @@ impl Default for Queue {
 }
 
 impl Queue {
-    pub fn new(pool: Option<DBPool>) -> Self {
+    pub fn new(pool: Option<DatabaseConnection>) -> Self {
         Self {
             events: vec![],
             current_job: Job {

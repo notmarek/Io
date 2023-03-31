@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::schema::files;
 use crate::utils::indexer::scan_file;
-use crate::DBPool;
+use crate::DatabaseConnection;
 use anitomy::Anitomy;
 use diesel::{prelude::*, AsChangeset, Identifiable};
 use serde::{Deserialize, Serialize};
@@ -52,7 +52,7 @@ impl File {
         f_library_id: String,
         f_path: String,
         f_folder: bool,
-        pool: &DBPool,
+        pool: &DatabaseConnection,
     ) -> Self {
         let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
@@ -77,7 +77,7 @@ impl File {
         }
     }
 
-    pub fn get(fid: String, pool: &DBPool) -> Result<Self, String> {
+    pub fn get(fid: String, pool: &DatabaseConnection) -> Result<Self, String> {
         let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
         files
@@ -86,7 +86,7 @@ impl File {
             .map_err(|_| String::from("not_found"))
     }
 
-    pub fn scan(&mut self, pool: &DBPool) {
+    pub fn scan(&mut self, pool: &DatabaseConnection) {
         let mut anitomy = Anitomy::new();
         if let Ok(scanned) = scan_file(Path::new(&self.path), &mut anitomy) {
             self.last_update = scanned.last_update;
@@ -102,7 +102,7 @@ impl File {
         todo!("handle errors in scan_file")
     }
 
-    pub fn get_folder_content(&self, pool: &DBPool) -> Vec<Self> {
+    pub fn get_folder_content(&self, pool: &DatabaseConnection) -> Vec<Self> {
         let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
         files

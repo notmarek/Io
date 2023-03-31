@@ -1,5 +1,5 @@
 use crate::AuthData;
-use crate::{config::Config, models::user::User, DBPool};
+use crate::{config::Config, models::user::User, DatabaseConnection};
 use actix_http::HttpMessage;
 use actix_web::{dev::ServiceRequest, error, web::Data, Error};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
@@ -61,7 +61,7 @@ pub async fn validator(
 ) -> Result<ServiceRequest, (Error, ServiceRequest)> {
     let token = creds.token();
     let config = req.app_data::<Data<Config>>().unwrap();
-    let pool = req.app_data::<Data<DBPool>>().unwrap();
+    let pool = req.app_data::<Data<DatabaseConnection>>().unwrap();
     let claims = match Claims::from_token(token, &config.jwt.public_key) {
         Ok(c) => c,
         Err(e) => return Err((e, req)),

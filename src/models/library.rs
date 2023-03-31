@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::schema::libraries;
 use crate::utils::indexer::crawl;
-use crate::DBPool;
+use crate::DatabaseConnection;
 use anitomy::Anitomy;
 use diesel::prelude::*;
 use log::error;
@@ -11,7 +11,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Debug, Queryable, Deserialize, Serialize, Insertable, Clone, PartialEq, Eq, ToSchema)]
-#[diesel(table_name = libraries)]
+// #[diesel(table_name = libraries)]
 pub struct Library {
     pub id: String,
     pub path: String, // library root
@@ -20,9 +20,10 @@ pub struct Library {
 }
 
 impl Library {
-    pub fn new(lib_path: String, lib_depth: i32, pool: &DBPool) -> Self {
+    pub fn new(lib_path: String, lib_depth: i32, pool: &DatabaseConnection) -> Self {
+        todo!("Convert to seaorm!")
         let mut db = pool.get().unwrap();
-        use crate::schema::libraries::dsl::*;
+        // use crate::schema::libraries::dsl::*;
         match libraries.filter(path.eq(&lib_path)).first::<Self>(&mut db) {
             Ok(l) => l,
             Err(_) => {
@@ -42,7 +43,7 @@ impl Library {
         }
     }
 
-    pub fn get(lib_id: String, pool: &DBPool) -> Result<Self, String> {
+    pub fn get(lib_id: String, pool: &DatabaseConnection) -> Result<Self, String> {
         let mut db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
         libraries
@@ -51,7 +52,7 @@ impl Library {
             .map_err(|_| String::from("not_found"))
     }
 
-    pub fn get_files(&self, pool: &DBPool) -> Result<Vec<crate::models::file::File>, String> {
+    pub fn get_files(&self, pool: &DatabaseConnection) -> Result<Vec<crate::models::file::File>, String> {
         let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
         files
@@ -60,7 +61,7 @@ impl Library {
             .map_err(|_| String::from("not_found"))
     }
 
-    pub fn get_all(pool: &DBPool) -> Result<Vec<Self>, String> {
+    pub fn get_all(pool: &DatabaseConnection) -> Result<Vec<Self>, String> {
         let mut db = pool.get().unwrap();
         use crate::schema::libraries::dsl::*;
         libraries
@@ -68,7 +69,7 @@ impl Library {
             .map_err(|_| String::from("unknown_error"))
     }
 
-    pub fn delete(lib_id: String, pool: &DBPool) -> Result<usize, String> {
+    pub fn delete(lib_id: String, pool: &DatabaseConnection) -> Result<usize, String> {
         let mut db = pool.get().unwrap();
         diesel::delete(
             crate::schema::files::dsl::files
@@ -82,7 +83,7 @@ impl Library {
             .map_err(|_| String::from("not_found"))
     }
 
-    pub fn crawl(&self, pool: &DBPool) {
+    pub fn crawl(&self, pool: &DatabaseConnection) {
         let mut anitomy = Anitomy::new();
         match crawl(
             Path::new(&self.path),

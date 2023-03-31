@@ -11,8 +11,8 @@ use futures::future::{ready, Ready};
 use serde::Serialize;
 use thiserror::Error;
 
-#[macro_use]
-extern crate diesel;
+// #[macro_use]
+// extern crate diesel;
 extern crate argon2;
 extern crate log;
 extern crate pretty_env_logger;
@@ -24,12 +24,12 @@ pub mod data_sources;
 pub mod docs;
 pub mod eventqueue;
 pub mod models;
-pub mod schema;
+// pub mod schema;
 pub mod utils;
 use log::error;
 use utoipa::ToSchema;
 
-pub type DBPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;
+// pub type DatabaseConnection = ;
 pub type ArcQueue = Arc<Mutex<Queue>>;
 
 #[derive(ToSchema, Debug, Serialize)]

@@ -1,4 +1,4 @@
-use crate::{models::file::File, AuthData, DBPool, ErrorResponse, Response};
+use crate::{models::file::File, AuthData, DatabaseConnection, ErrorResponse, Response};
 use actix_web::{error, get, web, HttpResponse};
 use serde::Deserialize;
 use utoipa::{self, IntoParams};
@@ -9,7 +9,7 @@ struct FileId {
 }
 
 impl FileId {
-    pub fn get(&self, pool: &DBPool) -> Result<File, String> {
+    pub fn get(&self, pool: &DatabaseConnection) -> Result<File, String> {
         File::get(self.file_id.clone(), pool)
     }
 }
@@ -28,7 +28,7 @@ impl FileId {
 #[get("/file/{file_id}")]
 async fn file(
     fid: web::Path<FileId>,
-    pool: web::Data<DBPool>,
+    pool: web::Data<DatabaseConnection>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
     let file = fid.get(&pool);

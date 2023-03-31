@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::auth::Claims;
 use crate::schema::users;
-use crate::DBPool;
+use crate::DatabaseConnection;
 use argon2::{self, hash_encoded, verify_encoded, Config, ThreadMode, Variant, Version};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -43,7 +43,7 @@ impl User {
         }
     }
 
-    pub fn get(uuid: String, pool: &DBPool) -> Result<Self, String> {
+    pub fn get(uuid: String, pool: &DatabaseConnection) -> Result<Self, String> {
         let mut db = pool.get().unwrap();
         use crate::schema::users::dsl::*;
         match users.filter(id.eq(&uuid)).first::<Self>(&mut db) {
@@ -58,7 +58,7 @@ impl User {
         }
     }
 
-    pub fn get_all(limit: i64, page: i64, pool: &DBPool) -> Vec<Self> {
+    pub fn get_all(limit: i64, page: i64, pool: &DatabaseConnection) -> Vec<Self> {
         let mut db = pool.get().unwrap();
         use crate::schema::users::dsl::*;
         users
@@ -72,7 +72,7 @@ impl User {
         Claims::new(self.id, self.permissions, token_validity)
     }
 
-    pub fn login(mut self, pool: &DBPool, token_validity: i64) -> Result<Claims, String> {
+    pub fn login(mut self, pool: &DatabaseConnection, token_validity: i64) -> Result<Claims, String> {
         let mut db = pool.get().unwrap();
         let raw_password = self.password;
         use crate::schema::users::dsl::*;
@@ -94,7 +94,7 @@ impl User {
     pub fn register(
         mut self,
         salt: String,
-        pool: &DBPool,
+        pool: &DatabaseConnection,
         token_validity: i64,
     ) -> Result<Claims, String> {
         let mut db = pool.get().unwrap();

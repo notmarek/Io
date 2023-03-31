@@ -1,6 +1,6 @@
 use crate::{
     models::file::{File, FileChangeset},
-    DBPool,
+    DatabaseConnection,
 };
 use anitomy::Anitomy;
 use log::debug;
@@ -10,7 +10,7 @@ pub fn crawl(
     path: &Path,
     depth_ttl: i32,
     _anitomy: &mut Anitomy,
-    pool: &DBPool,
+    pool: &DatabaseConnection,
     library_id: String,
 ) -> Result<(), String> {
     debug!("Scanning {}", path.to_str().unwrap());

@@ -14,13 +14,11 @@ use utoipa_swagger_ui::SwaggerUi;
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
 use chrono::Utc;
-use diesel::{
-    pg::PgConnection,
-    r2d2::{ConnectionManager, Pool},
-};
+use sea_orm::{Database, DatabaseConnection}
+// let db: DatabaseConnection = Database::connect("protocol://username:password@host/database").await?;
 use io::Session;
 // use io::utils::indexer::test_kool;
-use io::{api, config::Config, DBPool};
+use io::{api, config::Config, DatabaseConnection};
 
 use utoipa::OpenApi;
 
@@ -54,10 +52,7 @@ async fn main() -> std::io::Result<()> {
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
-    let queue_pool: DBPool = Pool::builder()
-        .max_size(db_connections)
-        .build(ConnectionManager::<PgConnection>::new(&db_string))
-        .expect("Failed to create pool.");
+    let queue_pool: DatabaseConnection = Database::connect(db_string).await.expect("Failed to create a database connection.");
     let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(queue_pool.clone()))));
     let worker_queue = queue.clone();
     // for folder in &config.folders.clone() {
@@ -73,7 +68,7 @@ async fn main() -> std::io::Result<()> {
             startup: Utc::now().timestamp(),
         };
         let manager = ConnectionManager::<PgConnection>::new(&db_string);
-        let pool: DBPool = Pool::builder()
+        let pool: DatabaseConnection = Pool::builder()
             .max_size(db_connections)
             .build(manager)
             .expect("Failed to create pool.");
