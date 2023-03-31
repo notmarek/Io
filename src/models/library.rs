@@ -21,7 +21,7 @@ pub struct Library {
 
 impl Library {
     pub fn new(lib_path: String, lib_depth: i32, pool: &DatabaseConnection) -> Self {
-        todo!("Convert to seaorm!")
+        todo!("Convert to seaorm!");
         let mut db = pool.get().unwrap();
         // use crate::schema::libraries::dsl::*;
         match libraries.filter(path.eq(&lib_path)).first::<Self>(&mut db) {
@@ -52,7 +52,10 @@ impl Library {
             .map_err(|_| String::from("not_found"))
     }
 
-    pub fn get_files(&self, pool: &DatabaseConnection) -> Result<Vec<crate::models::file::File>, String> {
+    pub fn get_files(
+        &self,
+        pool: &DatabaseConnection,
+    ) -> Result<Vec<crate::models::file::File>, String> {
         let mut db = pool.get().unwrap();
         use crate::schema::files::dsl::*;
         files

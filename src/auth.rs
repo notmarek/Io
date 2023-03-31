@@ -16,10 +16,10 @@ pub struct Claims {
 }
 
 impl Claims {
-    pub fn new(user_id: String, permissions: Vec<String>, valid_for: i64) -> Self {
+    pub fn new(user_id: String, permissions: String, valid_for: i64) -> Self {
         Self {
             user_id,
-            perms: permissions,
+            perms: permissions.split(",").map(|e| e.to_string()).collect(),
             exp: (Utc::now() + Duration::hours(valid_for)).timestamp(),
         }
     }

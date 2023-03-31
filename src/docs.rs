@@ -1,4 +1,4 @@
-use crate::{api, models};
+use crate::api;
 use utoipa::{
     openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
     Modify, OpenApi, ToSchema,
@@ -28,8 +28,8 @@ use utoipa::{
             api::user::RegisterRequest,
             api::library::Lib,
             api::info::Info,
-            models::user::User,
-            models::library::Library,
+            entity::user::Model,
+            entity::library::Model,
             T,
         )
     ),

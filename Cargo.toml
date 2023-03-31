@@ -6,7 +6,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [workspace]
-members = [".", "migration"]
+members = [".", "migration", "entity"]
 
 [dependencies]
 # actix - web framework
@@ -38,8 +38,9 @@ jsonwebtoken = "8"
 # chrono - date and time
 chrono = "0.4" 
 
-# diesel - database
-diesel = { version = "2", features = ["postgres", "r2d2"] }
+# sea-orm - database
+sea-orm = { version = "0.11", features = [ "debug-print", "runtime-tokio-rustls", "sqlx-mysql", "sqlx-postgres", "sqlx-sqlite" ] }
+
 
 # argon2 - password hashing
 rust-argon2 = "1.0"
@@ -56,8 +57,11 @@ futures = "0.3"
 # thiserror - error handling
 thiserror = "1.0"
 
-# async-trait - async trait
+# async-trait - async trait 
 async-trait = "0.1"
 
 # anitomy - title parser
 anitomy = "0.1"
+
+entity = { path = "entity" }
+migration = { path = "migration" }

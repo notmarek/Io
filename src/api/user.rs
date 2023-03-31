@@ -60,7 +60,11 @@ async fn register(
     req_data: web::Json<RegisterRequest>,
 ) -> impl actix_web::Responder {
     let user = User::new(req_data.username.clone(), req_data.password.clone(), vec![]);
-    match user.register("epicsalt#".to_string(), &DatabaseConnection, config.jwt.valid_for) {
+    match user.register(
+        "epicsalt#".to_string(),
+        &DatabaseConnection,
+        config.jwt.valid_for,
+    ) {
         Ok(claims) => HttpResponse::Ok().json(Tokens {
             status: "ok".to_string(),
             token_type: "Bearer".to_string(),

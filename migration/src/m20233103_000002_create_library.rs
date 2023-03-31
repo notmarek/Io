@@ -13,7 +13,6 @@ use sea_orm_migration::prelude::*;
 // ALTER TABLE public.libraries
 //     OWNER to postgres;
 
-
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 

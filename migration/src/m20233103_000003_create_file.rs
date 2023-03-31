@@ -1,5 +1,5 @@
-use sea_orm_migration::prelude::*;
 use crate::m20233103_000002_create_library::Library;
+use sea_orm_migration::prelude::*;
 // CREATE TABLE public.files
 // (
 //     id VARCHAR PRIMARY KEY NOT NULL,
@@ -39,7 +39,6 @@ enum File {
     Size,
 }
 
-
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -54,7 +53,14 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(File::Id).uuid().not_null().primary_key())
                     .col(ColumnDef::new(File::Parent).string().not_null())
                     .col(ColumnDef::new(File::LibraryId).uuid().not_null())
-                    .foreign_key(ForeignKey::create().from_tbl(File::Table).from_col(File::LastUpdate).to_tbl(Library::Table).to_col(Library::Id).on_delete(ForeignKeyAction::Cascade))
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from_tbl(File::Table)
+                            .from_col(File::LastUpdate)
+                            .to_tbl(Library::Table)
+                            .to_col(Library::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .col(ColumnDef::new(File::Path).string().not_null())
                     .col(ColumnDef::new(File::Folder).boolean().not_null())
                     .col(ColumnDef::new(File::LastUpdate).timestamp().not_null())
@@ -74,4 +80,3 @@ impl MigrationTrait for Migration {
             .await
     }
 }
-

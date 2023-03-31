@@ -14,7 +14,7 @@ use utoipa_swagger_ui::SwaggerUi;
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
 use chrono::Utc;
-use sea_orm::{Database, DatabaseConnection}
+use sea_orm::{Database, DatabaseConnection};
 // let db: DatabaseConnection = Database::connect("protocol://username:password@host/database").await?;
 use io::Session;
 // use io::utils::indexer::test_kool;
@@ -52,7 +52,9 @@ async fn main() -> std::io::Result<()> {
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
-    let queue_pool: DatabaseConnection = Database::connect(db_string).await.expect("Failed to create a database connection.");
+    let queue_pool: DatabaseConnection = Database::connect(db_string)
+        .await
+        .expect("Failed to create a database connection.");
     let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(queue_pool.clone()))));
     let worker_queue = queue.clone();
     // for folder in &config.folders.clone() {
