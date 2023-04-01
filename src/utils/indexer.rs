@@ -1,55 +1,58 @@
-use crate::models::file::{File, FileChangeset};
+use crate::models::file::FileActions;
+use entity::file::Model as File;
 use anitomy::Anitomy;
+use futures::Future;
 use log::debug;
 use sea_orm::DatabaseConnection;
-use std::{fs, path::Path, time::SystemTime};
+use std::{fs, path::Path, time::SystemTime };
 
 pub fn crawl(
     path: &Path,
     depth_ttl: i32,
-    _anitomy: &mut Anitomy,
     db: &DatabaseConnection,
     library_id: String,
 ) -> Result<(), String> {
+    todo!("Figure this shit out wth.");
     debug!("Scanning {}", path.to_str().unwrap());
-    File::new(
-        path.parent().unwrap().to_str().unwrap().to_string(),
-        library_id.clone(),
-        path.to_str().unwrap().to_string(),
-        path.is_dir(),
-        db,
-    );
-    if path.is_dir() {
-        let dir = fs::read_dir(path);
-        if dir.is_err() {
-            return Err(String::from("somethign happened idk"));
-        }
-        for entry in dir.unwrap() {
-            //unwrap should be safe?
+    // File::new(
+    //     path.parent().unwrap().to_str().unwrap().to_string(),
+    //     library_id.clone(),
+    //     path.to_str().unwrap().to_string(),
+    //     path.is_dir(),
+    //     db,
+    // ).await;
+    // if path.is_dir() {
+    //     let dir = fs::read_dir(path);
+    //     if dir.is_err() {
+    //         return  Box::pin(async move { Err(String::from("error")) });
+    //     }
+    //     for entry in dir.unwrap() {
+    //         //unwrap should be safe?
 
-            let entry = entry.map_err(|_| String::from("the entry is broken bruyh"))?;
-            let path = entry.path();
-            if depth_ttl != 0 {
-                crawl(&path, depth_ttl - 1, _anitomy, db, library_id.clone())?;
-            }
-        }
-    }
-    Ok(())
+    //         let entry = entry.map_err(|_| String::from("the entry is broken bruyh")).unwrap();
+    //         let path = entry.path();
+    //         if depth_ttl != 0 {
+    //             Box::pin(crawl(&path, depth_ttl - 1,  db, library_id.clone()).await?);
+    //         }
+    //     }
+    // }
+    // Box::pin(async move { Ok(()) })
 }
-pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) -> Result<FileChangeset, String> {
+pub fn scan_file(file_path: &Path) -> Result<File, String> {
     // println!("{}, {}", file_path.to_string_lossy(), file_path.is_dir());
     // return();
+    let mut anitomy: Anitomy = Anitomy::new();
     let metadata = fs::metadata(file_path).unwrap();
     match anitomy.parse(file_path.file_name().unwrap().to_str().unwrap()) {
         Ok(ref elements) => {
             // println!("SUCCESS: Parsed the filename successfully!");
-            return Ok(FileChangeset {
+            return Ok(File {
                 last_update: metadata
                     .modified()
                     .unwrap()
                     .duration_since(SystemTime::UNIX_EPOCH)
                     .unwrap()
-                    .as_secs() as i64,
+                    .as_secs().to_string(),
                 title: Some(
                     elements
                         .get(anitomy::ElementCategory::AnimeTitle)
@@ -66,7 +69,7 @@ pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) -> Result<FileChangese
                     elements
                         .get(anitomy::ElementCategory::EpisodeNumber)
                         .unwrap()
-                        .parse::<f32>()
+                        .parse::<i32>()
                         .unwrap(),
                 ),
                 release_group: Some(
@@ -75,7 +78,8 @@ pub fn scan_file(file_path: &Path, anitomy: &mut Anitomy) -> Result<FileChangese
                         .unwrap()
                         .to_string(),
                 ),
-                size: Some(metadata.len() as i64),
+                size: Some(metadata.len() as i32),
+                ..Default::default()
             });
             // println!(
             //     "It is: {} #{} by {}",

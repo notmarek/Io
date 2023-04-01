@@ -25,7 +25,7 @@ pub fn hash_password(password: String, salt: String) -> String {
 pub trait UserActions {
     fn has_permission_one_of<T: Display>(&self, perms: Vec<T>) -> bool;
     async fn register(
-        &self,
+        mut self,
         salt: String,
         db: &DatabaseConnection,
         token_validity: i64,
@@ -46,7 +46,7 @@ impl UserActions for user::Model {
     fn has_permission_one_of<T: Display>(&self, perms: Vec<T>) -> bool {
         perms
             .iter()
-            .any(|p| self.permissions.split(",").any(|e| e == &p.to_string()))
+            .any(|p| self.permissions.split(',').any(|e| e == p.to_string()))
     }
 
     fn new(username: String, password: String, permissions: Vec<String>) -> user::Model {
@@ -76,12 +76,12 @@ impl UserActions for user::Model {
         Claims::new(self.id, self.permissions, token_validity)
     }
 
-    async fn get_all(limit: i64, page: i64, db: &DatabaseConnection) -> Vec<user::Model> {
+    async fn get_all(_limit: i64, _page: i64, db: &DatabaseConnection) -> Vec<user::Model> {
         User::find().all(db).await.unwrap()
     }
 
     async fn register(
-        &self,
+        mut self,
         salt: String,
         db: &DatabaseConnection,
         token_validity: i64,
@@ -93,10 +93,10 @@ impl UserActions for user::Model {
         {
             Ok(Some(_)) => Err(String::from("username_exists")),
             Ok(None) => {
-                self.password = hash_password(self.password, salt);
+                self.password = hash_password(self.password.clone(), salt);
                 let active: user::ActiveModel = self.clone().into();
                 match active.insert(db).await {
-                    Ok(_) => Ok(Claims::new(self.id, self.permissions, token_validity)),
+                    Ok(_) => Ok(Claims::new(self.id.clone(), self.permissions.clone(), token_validity)),
                     Err(e) => Err(e.to_string()),
                 }
             }

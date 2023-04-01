@@ -3,6 +3,7 @@ use io::{
     ArcQueue,
 };
 use log::{debug, info};
+use migration::MigratorTrait;
 use std::{
     env,
     str::FromStr,
@@ -18,7 +19,7 @@ use sea_orm::{Database, DatabaseConnection};
 // let db: DatabaseConnection = Database::connect("protocol://username:password@host/database").await?;
 use io::Session;
 // use io::utils::indexer::test_kool;
-use io::{api, config::Config, DatabaseConnection};
+use io::{api, config::Config};
 
 use utoipa::OpenApi;
 
@@ -48,16 +49,17 @@ async fn main() -> std::io::Result<()> {
         serde_json::from_str(&conf)?
     };
     let db_string = config.db.connection_string.clone();
-    let db_connections = config.db.connections;
+    // let db_connections = config.db.connections;
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
-    let queue_pool: DatabaseConnection = Database::connect(db_string)
+    let db: DatabaseConnection = Database::connect(db_string)
         .await
         .expect("Failed to create a database connection.");
-    migration::Migrator::up(&db, None).await?;
-    let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(queue_pool.clone()))));
+    migration::Migrator::up(&db, None).await.unwrap();
+    let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(db.clone()))));
     let worker_queue = queue.clone();
+    
     // for folder in &config.folders.clone() {
     //     queue
     //     .lock()
@@ -70,12 +72,12 @@ async fn main() -> std::io::Result<()> {
         let session_info = Session {
             startup: Utc::now().timestamp(),
         };
-        let db: DatabaseConnection = Database::connect(&db_string)
-            .await
-            .expect("Failed to create a database connection.");
+        // let db: DatabaseConnection = Database::connect(&db_string)
+        //     .await
+        //     .expect("Failed to create a database connection.");
         App::new()
             .app_data(Data::new(config.clone()))
-            .app_data(Data::new(db))
+            .app_data(Data::new(db.clone()))
             .app_data(Data::new(session_info))
             .app_data(Data::new(queue.clone()))
             .service(

@@ -1,8 +1,9 @@
 use crate::auth::Claims;
 use crate::config::Config;
-use crate::models::user::User;
+use entity::user::Model as User;
+use crate::models::user::UserActions;
 use crate::AuthData;
-use crate::DatabaseConnection;
+use sea_orm::DatabaseConnection;
 use crate::ErrorResponse;
 use actix_web::{error, web, HttpResponse};
 use actix_web::{get, post, put};
@@ -56,15 +57,15 @@ pub struct LimitQuery {
 #[put("/user")]
 async fn register(
     config: web::Data<Config>,
-    DatabaseConnection: web::Data<DatabaseConnection>,
+    db: web::Data<DatabaseConnection>,
     req_data: web::Json<RegisterRequest>,
 ) -> impl actix_web::Responder {
     let user = User::new(req_data.username.clone(), req_data.password.clone(), vec![]);
     match user.register(
         "epicsalt#".to_string(),
-        &DatabaseConnection,
+        &db,
         config.jwt.valid_for,
-    ) {
+    ).await {
         Ok(claims) => HttpResponse::Ok().json(Tokens {
             status: "ok".to_string(),
             token_type: "Bearer".to_string(),
@@ -96,7 +97,7 @@ async fn register(
 #[post("/user")]
 async fn login(
     config: web::Data<Config>,
-    DatabaseConnection: web::Data<DatabaseConnection>,
+    db: web::Data<DatabaseConnection>,
     req_data: web::Json<UserRequest>,
 ) -> impl actix_web::Responder {
     match req_data.identifier.as_str() {
@@ -106,7 +107,7 @@ async fn login(
                 req_data.password.clone().unwrap(),
                 vec![],
             );
-            match user.login(&DatabaseConnection, config.jwt.valid_for) {
+            match user.login(&db, config.jwt.valid_for).await {
                 Ok(claims) => HttpResponse::Ok().json(Tokens {
                     status: "ok".to_string(),
                     token_type: "Bearer".to_string(),
@@ -130,7 +131,7 @@ async fn login(
             )
             .unwrap();
 
-            match User::get(claims.user_id, &DatabaseConnection) {
+            match User::get(claims.user_id, &db).await {
                 Ok(u) => {
                     if u.permissions.contains(&"banned".to_string()) {
                         HttpResponse::Unauthorized().json(ErrorResponse {
@@ -187,7 +188,7 @@ struct Uid {
 async fn user_info(
     path: web::Path<Uid>,
     AuthData(user): AuthData,
-    pool: web::Data<DatabaseConnection>,
+    db: web::Data<DatabaseConnection>,
 ) -> actix_web::Result<impl actix_web::Responder> {
     let user_info = {
         if path.user_id == "@me" {
@@ -199,7 +200,7 @@ async fn user_info(
                     error: "missing_permissions".to_string(),
                 }));
             }
-            match User::get(path.user_id.clone(), &pool) {
+            match User::get(path.user_id.clone(), &db).await {
                 Ok(u) => u,
                 Err(e) => {
                     return Err(error::ErrorNotFound(ErrorResponse {
@@ -227,7 +228,7 @@ async fn user_info(
 #[get("/users")]
 async fn user_list(
     AuthData(user): AuthData,
-    pool: web::Data<DatabaseConnection>,
+    db: web::Data<DatabaseConnection>,
     query: web::Query<LimitQuery>,
 ) -> actix_web::Result<impl actix_web::Responder> {
     if !user.has_permission_one_of(vec!["view_users", "*_users", "administrator"]) {
@@ -236,7 +237,7 @@ async fn user_list(
             error: "missing_permissions".to_string(),
         }));
     }
-    let users = User::get_all(query.limit.unwrap_or(25), query.page.unwrap_or(1), &pool);
+    let users = User::get_all(query.limit.unwrap_or(25), query.page.unwrap_or(1), &db).await;
     Ok(HttpResponse::Ok().json(users))
 }
 

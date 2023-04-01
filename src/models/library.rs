@@ -77,16 +77,11 @@ impl LibraryActions for library::Model {
     }
 
     async fn crawl(&self, db: &DatabaseConnection) {
-        let mut anitomy = Anitomy::new();
-        match crawl(
+        crawl(
             Path::new(&self.path),
             self.depth,
-            &mut anitomy,
             db,
             self.id.clone(),
-        ) {
-            Ok(_) => (),
-            Err(e) => error!("{}", e),
-        }
+        ).unwrap()
     }
 }

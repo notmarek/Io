@@ -22,7 +22,7 @@ impl Claims {
     pub fn new(user_id: String, permissions: String, valid_for: i64) -> Self {
         Self {
             user_id,
-            perms: permissions.split(",").map(|e| e.to_string()).collect(),
+            perms: permissions.split(',').map(|e| e.to_string()).collect(),
             exp: (Utc::now() + Duration::hours(valid_for)).timestamp(),
         }
     }
