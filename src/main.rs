@@ -27,7 +27,7 @@ use utoipa::OpenApi;
 async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
     info!("Initialized queue thread.");
     loop {
-        queue.lock().unwrap().update().await;
+        queue.lock().await.update().await;
         tokio::time::sleep(Duration::from_millis(125)).await;
         
     }

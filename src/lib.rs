@@ -1,6 +1,6 @@
 use std::fmt::Display;
-use std::sync::{Arc, Mutex};
-
+use std::sync::{Arc};
+use tokio::sync::Mutex;
 use actix_web::FromRequest;
 use actix_web::HttpMessage;
 use actix_web::HttpRequest;

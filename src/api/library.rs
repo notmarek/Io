@@ -3,6 +3,7 @@ use crate::{
     models::{library::LibraryActions, user::UserActions},
     ArcQueue, AuthData, ErrorResponse, Response,
 };
+use tokio::sync::Mutex;
 use actix_web::{delete, get, post, put};
 use actix_web::{error, web, HttpResponse};
 use entity::file::Model as File;
@@ -119,8 +120,7 @@ async fn scan_library(
     }
     match Library::get(path.library_id.clone(), &db).await {
         Ok(u) => queue
-            .lock()
-            .unwrap()
+            .lock().await
             .add_event(RawEvent::ScanLibraryEvent { library: u }, 10),
         Err(e) => {
             return Err(error::ErrorNotFound(ErrorResponse {
