@@ -1,15 +1,17 @@
+use crate::models::library::LibraryActions;
+use async_trait::async_trait;
+use entity::library::Model as Library;
 use log::info;
+use sea_orm::DatabaseConnection;
 use std::{
     fmt::{Display, Formatter},
     path::PathBuf,
 };
 
-use crate::{models::library::Library, DBPool};
-
 pub struct Queue {
     pub events: Vec<Event>,
     pub current_job: Job,
-    pub pool: Option<DBPool>,
+    pub pool: Option<DatabaseConnection>,
 }
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum RawEvent {
@@ -21,12 +23,12 @@ pub enum RawEvent {
 }
 
 impl RawEvent {
-    pub fn execute(&self, pool: Option<DBPool>) {
+    pub async fn execute(&self, db: Option<DatabaseConnection>) {
         match self {
             Self::AnilistRefreshEvent { anilist_id: a } => info!("Anilist Refresh: {}", a),
             Self::ScanLibraryEvent { library } => {
-                if let Some(pool) = pool {
-                    library.crawl(&pool);
+                if let Some(db) = db {
+                    library.crawl(&db).await;
                 } else {
                     info!("No pool provided. Library scanning unavailable")
                 }
@@ -80,12 +82,13 @@ pub struct Job {
     pub finished: bool,
 }
 
+#[async_trait]
 pub trait QueueTrait: Send + Sync {
     fn is_idle(&self) -> bool;
     fn add_event(&mut self, event: RawEvent, priority: usize);
     fn is_current_job_finished(&self) -> bool;
-    fn execute_current_job(&mut self);
-    fn update(&mut self);
+    async fn execute_current_job(&mut self);
+    async fn update(&mut self);
 }
 
 impl Default for Queue {
@@ -95,7 +98,7 @@ impl Default for Queue {
 }
 
 impl Queue {
-    pub fn new(pool: Option<DBPool>) -> Self {
+    pub fn new(pool: Option<DatabaseConnection>) -> Self {
         Self {
             events: vec![],
             current_job: Job {
@@ -107,6 +110,7 @@ impl Queue {
     }
 }
 
+#[async_trait]
 impl QueueTrait for Queue {
     fn is_idle(&self) -> bool {
         self.current_job.event == RawEvent::Idle
@@ -120,13 +124,13 @@ impl QueueTrait for Queue {
         self.current_job.finished
     }
 
-    fn execute_current_job(&mut self) {
-        self.current_job.event.execute(self.pool.clone());
+    async fn execute_current_job(&mut self) {
+        self.current_job.event.execute(self.pool.clone()).await;
         self.current_job.finished = true;
         info!("Job finished: {}", self.current_job.event);
     }
 
-    fn update(&mut self) {
+    async fn update(&mut self) {
         if (self.is_idle() || self.is_current_job_finished()) && !self.events.is_empty() {
             self.events.sort_by(|a, b| b.priority.cmp(&a.priority));
             self.current_job = Job {
@@ -136,7 +140,7 @@ impl QueueTrait for Queue {
             info!("Started new job: {}", self.current_job.event);
             self.events.remove(0);
         } else if !self.is_current_job_finished() {
-            self.execute_current_job();
+            self.execute_current_job().await;
         }
     }
 }

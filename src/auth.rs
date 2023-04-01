@@ -1,10 +1,13 @@
+use crate::config::Config;
+use crate::models::user::UserActions;
 use crate::AuthData;
-use crate::{config::Config, models::user::User, DBPool};
 use actix_http::HttpMessage;
 use actix_web::{dev::ServiceRequest, error, web::Data, Error};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use chrono::{Duration, Utc};
+use entity::user::Model as User;
 use jsonwebtoken::{self, decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -16,10 +19,10 @@ pub struct Claims {
 }
 
 impl Claims {
-    pub fn new(user_id: String, permissions: Vec<String>, valid_for: i64) -> Self {
+    pub fn new(user_id: String, permissions: String, valid_for: i64) -> Self {
         Self {
             user_id,
-            perms: permissions,
+            perms: permissions.split(',').map(|e| e.to_string()).collect(),
             exp: (Utc::now() + Duration::hours(valid_for)).timestamp(),
         }
     }
@@ -61,14 +64,14 @@ pub async fn validator(
 ) -> Result<ServiceRequest, (Error, ServiceRequest)> {
     let token = creds.token();
     let config = req.app_data::<Data<Config>>().unwrap();
-    let pool = req.app_data::<Data<DBPool>>().unwrap();
+    let pool = req.app_data::<Data<DatabaseConnection>>().unwrap();
     let claims = match Claims::from_token(token, &config.jwt.public_key) {
         Ok(c) => c,
         Err(e) => return Err((e, req)),
     };
 
     // Check if user exists/is banned
-    match User::get(claims.user_id, pool) {
+    match User::get(claims.user_id, pool).await {
         Ok(u) => {
             if u.permissions.contains(&"banned".to_string()) {
                 return Err((error::ErrorUnauthorized("banned_user".to_string()), req));

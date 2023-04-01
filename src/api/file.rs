@@ -1,5 +1,7 @@
-use crate::{models::file::File, AuthData, DBPool, ErrorResponse, Response};
+use crate::{models::file::FileActions, AuthData, ErrorResponse, Response};
 use actix_web::{error, get, web, HttpResponse};
+use entity::file::Model as File;
+use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use utoipa::{self, IntoParams};
 
@@ -9,8 +11,8 @@ struct FileId {
 }
 
 impl FileId {
-    pub fn get(&self, pool: &DBPool) -> Result<File, String> {
-        File::get(self.file_id.clone(), pool)
+    pub async fn get(&self, pool: &DatabaseConnection) -> Result<File, String> {
+        File::get(self.file_id.clone(), pool).await
     }
 }
 
@@ -28,10 +30,10 @@ impl FileId {
 #[get("/file/{file_id}")]
 async fn file(
     fid: web::Path<FileId>,
-    pool: web::Data<DBPool>,
+    db: web::Data<DatabaseConnection>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
-    let file = fid.get(&pool);
+    let file = fid.get(&db).await;
     if let Err(e) = file {
         return Err(error::ErrorNotFound(ErrorResponse {
             status: "error".to_string(),
@@ -42,7 +44,7 @@ async fn file(
     if file.folder {
         return Ok(HttpResponse::Ok().json(Response {
             status: "ok".to_string(),
-            data: file.get_folder_content(&pool),
+            data: file.get_folder_content(&db).await.unwrap(),
         }));
     }
     Ok(HttpResponse::Ok().json(Response {

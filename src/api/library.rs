@@ -1,13 +1,16 @@
 use crate::{
     eventqueue::{QueueTrait, RawEvent},
-    models::{file::File, library::Library},
-    ArcQueue, AuthData, DBPool, ErrorResponse, Response,
+    models::{library::LibraryActions, user::UserActions},
+    ArcQueue, AuthData, ErrorResponse, Response,
 };
+use tokio::sync::Mutex;
 use actix_web::{delete, get, post, put};
 use actix_web::{error, web, HttpResponse};
+use entity::file::Model as File;
+use entity::library::Model as Library;
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams, ToSchema};
-
 #[derive(IntoParams, Deserialize)]
 pub struct LibId {
     library_id: String,
@@ -26,11 +29,11 @@ pub struct LibId {
 )]
 #[get("/library/all")]
 async fn libraries(
-    pool: web::Data<DBPool>,
+    db: web::Data<DatabaseConnection>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
     let libraries = {
-        match Library::get_all(&pool) {
+        match Library::get_all(&db).await {
             Ok(u) => Response {
                 status: "ok".to_string(),
                 data: u,
@@ -62,7 +65,7 @@ async fn libraries(
 #[get("/library/{library_id}")]
 async fn library(
     path: web::Path<LibId>,
-    pool: web::Data<DBPool>,
+    db: web::Data<DatabaseConnection>,
     AuthData(_user): AuthData,
 ) -> impl actix_web::Responder {
     #[derive(Serialize)]
@@ -71,12 +74,12 @@ async fn library(
         files: Vec<File>,
     }
     let library = {
-        match Library::get(path.library_id.clone(), &pool) {
+        match Library::get(path.library_id.clone(), &db).await {
             Ok(u) => Response {
                 status: "ok".to_string(),
                 data: Bruh {
                     library_info: u.clone(),
-                    files: u.get_files(&pool).unwrap(),
+                    files: u.get_files(&db).await.unwrap(),
                 },
             },
             Err(e) => {
@@ -105,7 +108,7 @@ async fn library(
 #[post("/library/{library_id}/scan")]
 async fn scan_library(
     path: web::Path<LibId>,
-    pool: web::Data<DBPool>,
+    db: web::Data<DatabaseConnection>,
     queue: web::Data<ArcQueue>,
     AuthData(user): AuthData,
 ) -> impl actix_web::Responder {
@@ -115,10 +118,9 @@ async fn scan_library(
             error: "missing_permissions".to_string(),
         }));
     }
-    match Library::get(path.library_id.clone(), &pool) {
+    match Library::get(path.library_id.clone(), &db).await {
         Ok(u) => queue
-            .lock()
-            .unwrap()
+            .lock().await
             .add_event(RawEvent::ScanLibraryEvent { library: u }, 10),
         Err(e) => {
             return Err(error::ErrorNotFound(ErrorResponse {
@@ -148,7 +150,7 @@ async fn scan_library(
 #[delete("/library/{library_id}")]
 async fn delete_library(
     path: web::Path<LibId>,
-    pool: web::Data<DBPool>,
+    db: web::Data<DatabaseConnection>,
     AuthData(user): AuthData,
 ) -> impl actix_web::Responder {
     if !user.has_permission_one_of(vec!["delete_library", "*_library", "administrator"]) {
@@ -157,7 +159,7 @@ async fn delete_library(
             error: "missing_permissions".to_string(),
         }));
     }
-    match Library::delete(path.library_id.clone(), &pool) {
+    match Library::delete(path.library_id.clone(), &db).await {
         Ok(u) => Ok(HttpResponse::Ok().json(Response {
             status: "ok".to_string(),
             data: u,
@@ -189,7 +191,7 @@ pub struct Lib {
 #[put("/library")]
 async fn create_library(
     data: web::Json<Lib>,
-    pool: web::Data<DBPool>,
+    db: web::Data<DatabaseConnection>,
     AuthData(user): AuthData,
 ) -> impl actix_web::Responder {
     if !user.has_permission_one_of(vec!["create_library", "*_library", "administrator"]) {
@@ -198,7 +200,7 @@ async fn create_library(
             error: "missing_permissions".to_string(),
         }));
     }
-    let lib = Library::new(data.path.clone(), data.depth, &pool);
+    let lib = Library::new(data.path.clone(), data.depth, &db).await;
     Ok(HttpResponse::Ok().json(Response {
         status: "ok".to_string(),
         data: lib,

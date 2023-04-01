@@ -3,32 +3,33 @@ use io::{
     ArcQueue,
 };
 use log::{debug, info};
+use migration::MigratorTrait;
 use std::{
     env,
     str::FromStr,
-    sync::{Arc, Mutex},
     time::Duration,
+    sync::Arc
 };
+use tokio::sync::{Mutex};
 use utoipa_swagger_ui::SwaggerUi;
 
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
 use chrono::Utc;
-use diesel::{
-    pg::PgConnection,
-    r2d2::{ConnectionManager, Pool},
-};
+use sea_orm::{Database, DatabaseConnection};
+// let db: DatabaseConnection = Database::connect("protocol://username:password@host/database").await?;
 use io::Session;
 // use io::utils::indexer::test_kool;
-use io::{api, config::Config, DBPool};
+use io::{api, config::Config};
 
 use utoipa::OpenApi;
 
 async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
     info!("Initialized queue thread.");
     loop {
-        queue.lock().unwrap().update();
+        queue.lock().await.update().await;
         tokio::time::sleep(Duration::from_millis(125)).await;
+        
     }
 }
 
@@ -50,16 +51,17 @@ async fn main() -> std::io::Result<()> {
         serde_json::from_str(&conf)?
     };
     let db_string = config.db.connection_string.clone();
-    let db_connections = config.db.connections;
+    // let db_connections = config.db.connections;
     let cors = config.cors.clone();
     let port = config.port;
     let address = config.address.clone();
-    let queue_pool: DBPool = Pool::builder()
-        .max_size(db_connections)
-        .build(ConnectionManager::<PgConnection>::new(&db_string))
-        .expect("Failed to create pool.");
-    let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(queue_pool.clone()))));
+    let db: DatabaseConnection = Database::connect(db_string)
+        .await
+        .expect("Failed to create a database connection.");
+    migration::Migrator::up(&db, None).await.unwrap();
+    let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(db.clone()))));
     let worker_queue = queue.clone();
+
     // for folder in &config.folders.clone() {
     //     queue
     //     .lock()
@@ -72,14 +74,12 @@ async fn main() -> std::io::Result<()> {
         let session_info = Session {
             startup: Utc::now().timestamp(),
         };
-        let manager = ConnectionManager::<PgConnection>::new(&db_string);
-        let pool: DBPool = Pool::builder()
-            .max_size(db_connections)
-            .build(manager)
-            .expect("Failed to create pool.");
+        // let db: DatabaseConnection = Database::connect(&db_string)
+        //     .await
+        //     .expect("Failed to create a database connection.");
         App::new()
             .app_data(Data::new(config.clone()))
-            .app_data(Data::new(pool))
+            .app_data(Data::new(db.clone()))
             .app_data(Data::new(session_info))
             .app_data(Data::new(queue.clone()))
             .service(
