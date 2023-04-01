@@ -1,12 +1,12 @@
 use crate::auth::Claims;
 use crate::config::Config;
-use entity::user::Model as User;
 use crate::models::user::UserActions;
 use crate::AuthData;
-use sea_orm::DatabaseConnection;
 use crate::ErrorResponse;
 use actix_web::{error, web, HttpResponse};
 use actix_web::{get, post, put};
+use entity::user::Model as User;
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
@@ -61,11 +61,10 @@ async fn register(
     req_data: web::Json<RegisterRequest>,
 ) -> impl actix_web::Responder {
     let user = User::new(req_data.username.clone(), req_data.password.clone(), vec![]);
-    match user.register(
-        "epicsalt#".to_string(),
-        &db,
-        config.jwt.valid_for,
-    ).await {
+    match user
+        .register("epicsalt#".to_string(), &db, config.jwt.valid_for)
+        .await
+    {
         Ok(claims) => HttpResponse::Ok().json(Tokens {
             status: "ok".to_string(),
             token_type: "Bearer".to_string(),

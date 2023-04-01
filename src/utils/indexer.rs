@@ -1,10 +1,10 @@
 use crate::models::file::FileActions;
-use entity::file::Model as File;
 use anitomy::Anitomy;
+use entity::file::Model as File;
 use futures::Future;
 use log::debug;
 use sea_orm::DatabaseConnection;
-use std::{fs, path::Path, time::SystemTime };
+use std::{fs, path::Path, time::SystemTime};
 
 pub fn crawl(
     path: &Path,
@@ -52,7 +52,8 @@ pub fn scan_file(file_path: &Path) -> Result<File, String> {
                     .unwrap()
                     .duration_since(SystemTime::UNIX_EPOCH)
                     .unwrap()
-                    .as_secs().to_string(),
+                    .as_secs()
+                    .to_string(),
                 title: Some(
                     elements
                         .get(anitomy::ElementCategory::AnimeTitle)

@@ -77,11 +77,6 @@ impl LibraryActions for library::Model {
     }
 
     async fn crawl(&self, db: &DatabaseConnection) {
-        crawl(
-            Path::new(&self.path),
-            self.depth,
-            db,
-            self.id.clone(),
-        ).unwrap()
+        crawl(Path::new(&self.path), self.depth, db, self.id.clone()).unwrap()
     }
 }

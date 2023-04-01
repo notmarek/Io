@@ -7,9 +7,10 @@ use migration::MigratorTrait;
 use std::{
     env,
     str::FromStr,
-    sync::{Arc, Mutex},
     time::Duration,
+    sync::Arc
 };
+use tokio::sync::{Mutex};
 use utoipa_swagger_ui::SwaggerUi;
 
 use actix_cors::Cors;
@@ -26,8 +27,9 @@ use utoipa::OpenApi;
 async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
     info!("Initialized queue thread.");
     loop {
-        queue.lock().unwrap().update();
+        queue.lock().unwrap().update().await;
         tokio::time::sleep(Duration::from_millis(125)).await;
+        
     }
 }
 
@@ -59,7 +61,7 @@ async fn main() -> std::io::Result<()> {
     migration::Migrator::up(&db, None).await.unwrap();
     let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(db.clone()))));
     let worker_queue = queue.clone();
-    
+
     // for folder in &config.folders.clone() {
     //     queue
     //     .lock()

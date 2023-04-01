@@ -96,7 +96,11 @@ impl UserActions for user::Model {
                 self.password = hash_password(self.password.clone(), salt);
                 let active: user::ActiveModel = self.clone().into();
                 match active.insert(db).await {
-                    Ok(_) => Ok(Claims::new(self.id.clone(), self.permissions.clone(), token_validity)),
+                    Ok(_) => Ok(Claims::new(
+                        self.id.clone(),
+                        self.permissions.clone(),
+                        token_validity,
+                    )),
                     Err(e) => Err(e.to_string()),
                 }
             }

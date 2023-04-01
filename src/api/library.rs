@@ -1,15 +1,15 @@
 use crate::{
     eventqueue::{QueueTrait, RawEvent},
+    models::{library::LibraryActions, user::UserActions},
     ArcQueue, AuthData, ErrorResponse, Response,
-    models::{library::LibraryActions, user::UserActions}
 };
-use entity::file::Model as File;
-use entity::library::Model as Library;
 use actix_web::{delete, get, post, put};
 use actix_web::{error, web, HttpResponse};
+use entity::file::Model as File;
+use entity::library::Model as Library;
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams, ToSchema};
-use sea_orm::DatabaseConnection;
 #[derive(IntoParams, Deserialize)]
 pub struct LibId {
     library_id: String,

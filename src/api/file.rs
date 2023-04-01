@@ -1,9 +1,9 @@
 use crate::{models::file::FileActions, AuthData, ErrorResponse, Response};
 use actix_web::{error, get, web, HttpResponse};
+use entity::file::Model as File;
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use utoipa::{self, IntoParams};
-use entity::file::Model as File;
 
 #[derive(Deserialize, IntoParams)]
 struct FileId {
