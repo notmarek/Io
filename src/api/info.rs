@@ -1,7 +1,9 @@
 use crate::{config::Config, Session};
 use actix_web::get;
 use actix_web::web;
+use actix_web::web::Data;
 use chrono::Utc;
+use sea_orm::DatabaseConnection;
 use serde::Serialize;
 use sysinfo::{System, SystemExt};
 use utoipa::{self, ToSchema};
@@ -17,6 +19,7 @@ pub struct Info {
     memory: String,
     swap: String,
     os: String,
+    db_engine: String,
 }
 
 #[utoipa::path(
@@ -30,11 +33,17 @@ pub struct Info {
 async fn info(
     config: web::Data<Config>,
     session_info: web::Data<Session>,
+    db: web::Data<DatabaseConnection>,
 ) -> impl actix_web::Responder {
     let mut sys = System::new_all();
     sys.refresh_all();
     let load = sys.load_average();
-
+    let db_engine = match db.into_inner().as_ref() {
+        DatabaseConnection::SqlxMySqlPoolConnection(_) => String::from("mysql"),
+        DatabaseConnection::SqlxPostgresPoolConnection(_) => String::from("postgres"),
+        DatabaseConnection::SqlxSqlitePoolConnection(_) => String::from("sqlite"),
+        _ => String::from("unknown"),
+    };
     actix_web::HttpResponse::Ok().json(Info {
         site_name: config.info.name.clone(),
         version: config.info.version.clone(),
@@ -58,6 +67,7 @@ async fn info(
             sys.os_version().unwrap_or_default(),
             sys.kernel_version().unwrap()
         ),
+        db_engine,
     })
 }
 

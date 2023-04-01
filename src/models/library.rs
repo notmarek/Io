@@ -1,9 +1,7 @@
 use crate::utils::indexer::crawl;
-use anitomy::Anitomy;
 use async_trait::async_trait;
 use entity::prelude::{File, Library};
 use entity::{file, library};
-use log::error;
 use sea_orm::prelude::*;
 use sea_orm::DatabaseConnection;
 use std::path::Path;

@@ -1,6 +1,3 @@
-use std::fmt::Display;
-use std::sync::{Arc};
-use tokio::sync::Mutex;
 use actix_web::FromRequest;
 use actix_web::HttpMessage;
 use actix_web::HttpRequest;
@@ -9,7 +6,10 @@ use actix_web::ResponseError;
 use eventqueue::Queue;
 use futures::future::{ready, Ready};
 use serde::Serialize;
+use std::fmt::Display;
+use std::sync::Arc;
 use thiserror::Error;
+use tokio::sync::Mutex;
 
 // #[macro_use]
 // extern crate diesel;
