@@ -1,16 +1,14 @@
-use crate::{
-    models::file::{File, FileChangeset},
-    DatabaseConnection,
-};
+use crate::models::file::{File, FileChangeset};
 use anitomy::Anitomy;
 use log::debug;
+use sea_orm::DatabaseConnection;
 use std::{fs, path::Path, time::SystemTime};
 
 pub fn crawl(
     path: &Path,
     depth_ttl: i32,
     _anitomy: &mut Anitomy,
-    pool: &DatabaseConnection,
+    db: &DatabaseConnection,
     library_id: String,
 ) -> Result<(), String> {
     debug!("Scanning {}", path.to_str().unwrap());
@@ -19,7 +17,7 @@ pub fn crawl(
         library_id.clone(),
         path.to_str().unwrap().to_string(),
         path.is_dir(),
-        pool,
+        db,
     );
     if path.is_dir() {
         let dir = fs::read_dir(path);
@@ -32,7 +30,7 @@ pub fn crawl(
             let entry = entry.map_err(|_| String::from("the entry is broken bruyh"))?;
             let path = entry.path();
             if depth_ttl != 0 {
-                crawl(&path, depth_ttl - 1, _anitomy, pool, library_id.clone())?;
+                crawl(&path, depth_ttl - 1, _anitomy, db, library_id.clone())?;
             }
         }
     }

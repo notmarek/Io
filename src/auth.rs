@@ -1,10 +1,13 @@
+use crate::config::Config;
+use crate::models::user::UserActions;
 use crate::AuthData;
-use crate::{config::Config, models::user::User, DatabaseConnection};
 use actix_http::HttpMessage;
 use actix_web::{dev::ServiceRequest, error, web::Data, Error};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use chrono::{Duration, Utc};
+use entity::user::Model as User;
 use jsonwebtoken::{self, decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -68,7 +71,7 @@ pub async fn validator(
     };
 
     // Check if user exists/is banned
-    match User::get(claims.user_id, pool) {
+    match User::get(claims.user_id, pool).await {
         Ok(u) => {
             if u.permissions.contains(&"banned".to_string()) {
                 return Err((error::ErrorUnauthorized("banned_user".to_string()), req));

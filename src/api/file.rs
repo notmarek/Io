@@ -1,5 +1,6 @@
-use crate::{models::file::File, AuthData, DatabaseConnection, ErrorResponse, Response};
+use crate::{models::file::File, AuthData, ErrorResponse, Response};
 use actix_web::{error, get, web, HttpResponse};
+use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use utoipa::{self, IntoParams};
 

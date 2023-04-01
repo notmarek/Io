@@ -75,7 +75,7 @@ impl ResponseError for Unauthorized {
 }
 
 #[derive(Clone, Debug)]
-pub struct AuthData(pub models::user::User);
+pub struct AuthData(pub entity::user::Model);
 
 impl FromRequest for AuthData {
     type Error = Unauthorized;

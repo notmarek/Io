@@ -1,10 +1,8 @@
 use std::path::Path;
 
-use crate::schema::files;
 use crate::utils::indexer::scan_file;
-use crate::DatabaseConnection;
 use anitomy::Anitomy;
-use diesel::{prelude::*, AsChangeset, Identifiable};
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

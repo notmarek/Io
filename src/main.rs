@@ -55,6 +55,7 @@ async fn main() -> std::io::Result<()> {
     let queue_pool: DatabaseConnection = Database::connect(db_string)
         .await
         .expect("Failed to create a database connection.");
+    migration::Migrator::up(&db, None).await?;
     let queue: ArcQueue = Arc::new(Mutex::new(Queue::new(Some(queue_pool.clone()))));
     let worker_queue = queue.clone();
     // for folder in &config.folders.clone() {
@@ -69,14 +70,12 @@ async fn main() -> std::io::Result<()> {
         let session_info = Session {
             startup: Utc::now().timestamp(),
         };
-        let manager = ConnectionManager::<PgConnection>::new(&db_string);
-        let pool: DatabaseConnection = Pool::builder()
-            .max_size(db_connections)
-            .build(manager)
-            .expect("Failed to create pool.");
+        let db: DatabaseConnection = Database::connect(&db_string)
+            .await
+            .expect("Failed to create a database connection.");
         App::new()
             .app_data(Data::new(config.clone()))
-            .app_data(Data::new(pool))
+            .app_data(Data::new(db))
             .app_data(Data::new(session_info))
             .app_data(Data::new(queue.clone()))
             .service(

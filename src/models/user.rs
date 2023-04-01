@@ -5,7 +5,6 @@ use entity::prelude::User;
 use entity::user;
 use sea_orm::prelude::*;
 use std::fmt::Display;
-use utoipa::ToSchema;
 
 pub fn hash_password(password: String, salt: String) -> String {
     let config = Config {

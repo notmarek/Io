@@ -1,10 +1,10 @@
+use crate::models::library::Library;
 use log::info;
+use sea_orm::DatabaseConnection;
 use std::{
     fmt::{Display, Formatter},
     path::PathBuf,
 };
-
-use crate::{models::library::Library, DatabaseConnection};
 
 pub struct Queue {
     pub events: Vec<Event>,
@@ -21,12 +21,12 @@ pub enum RawEvent {
 }
 
 impl RawEvent {
-    pub fn execute(&self, pool: Option<DatabaseConnection>) {
+    pub fn execute(&self, db: Option<DatabaseConnection>) {
         match self {
             Self::AnilistRefreshEvent { anilist_id: a } => info!("Anilist Refresh: {}", a),
             Self::ScanLibraryEvent { library } => {
-                if let Some(pool) = pool {
-                    library.crawl(&pool);
+                if let Some(db) = db {
+                    library.crawl(&db);
                 } else {
                     info!("No pool provided. Library scanning unavailable")
                 }

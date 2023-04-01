@@ -1,98 +1,88 @@
-use std::path::Path;
-
-use crate::schema::libraries;
 use crate::utils::indexer::crawl;
-use crate::DatabaseConnection;
 use anitomy::Anitomy;
-use diesel::prelude::*;
+use async_trait::async_trait;
+use entity::prelude::{File, Library};
+use entity::{file, library};
 use log::error;
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use sea_orm::prelude::*;
+use sea_orm::DatabaseConnection;
+use std::path::Path;
 use uuid::Uuid;
 
-#[derive(Debug, Queryable, Deserialize, Serialize, Insertable, Clone, PartialEq, Eq, ToSchema)]
-// #[diesel(table_name = libraries)]
-pub struct Library {
-    pub id: String,
-    pub path: String, // library root
-    pub depth: i32,   // how deep should we scan? -1 for deepscan
-    pub last_scan: i32,
+#[async_trait]
+pub trait LibraryActions {
+    async fn new(
+        lib_path: String,
+        lib_depth: i32,
+        db: &DatabaseConnection,
+    ) -> Result<library::Model, String>;
+    async fn get(lib_id: String, db: &DatabaseConnection) -> Result<library::Model, String>;
+    async fn get_files(&self, db: &DatabaseConnection) -> Result<Vec<file::Model>, String>;
+    async fn get_all(db: &DatabaseConnection) -> Result<Vec<library::Model>, String>;
+    async fn delete(lib_id: String, db: &DatabaseConnection) -> Result<u64, String>;
+    async fn crawl(&self, db: &DatabaseConnection);
 }
 
-impl Library {
-    pub fn new(lib_path: String, lib_depth: i32, pool: &DatabaseConnection) -> Self {
-        todo!("Convert to seaorm!");
-        let mut db = pool.get().unwrap();
-        // use crate::schema::libraries::dsl::*;
-        match libraries.filter(path.eq(&lib_path)).first::<Self>(&mut db) {
-            Ok(l) => l,
-            Err(_) => {
-                match diesel::insert_into(libraries)
-                    .values(Library {
-                        id: Uuid::new_v4().to_string(),
-                        path: lib_path,
-                        depth: lib_depth,
-                        last_scan: 0,
-                    })
-                    .get_result::<Self>(&mut db)
-                {
-                    Ok(l) => l,
-                    Err(_) => panic!("What the fuck man."),
+#[async_trait]
+impl LibraryActions for library::Model {
+    async fn new(
+        lib_path: String,
+        lib_depth: i32,
+        db: &DatabaseConnection,
+    ) -> Result<library::Model, String> {
+        match Library::find()
+            .filter(library::Column::Path.eq(&lib_path))
+            .one(db)
+            .await
+        {
+            Ok(Some(l)) => Ok(l),
+            Ok(None) => {
+                let active: library::ActiveModel = library::Model {
+                    id: Uuid::new_v4().to_string(),
+                    path: lib_path,
+                    depth: lib_depth,
+                    last_scan: 0.to_string(),
                 }
+                .into();
+                active.insert(db).await.map_err(|e| e.to_string())
             }
+            Err(e) => Err(e.to_string()),
         }
     }
 
-    pub fn get(lib_id: String, pool: &DatabaseConnection) -> Result<Self, String> {
-        let mut db = pool.get().unwrap();
-        use crate::schema::libraries::dsl::*;
-        libraries
-            .filter(id.eq(&lib_id))
-            .first::<Self>(&mut db)
-            .map_err(|_| String::from("not_found"))
+    async fn get(lib_id: String, db: &DatabaseConnection) -> Result<library::Model, String> {
+        match Library::find_by_id(lib_id).one(db).await {
+            Ok(Some(l)) => Ok(l),
+            Ok(None) => Err("No such library was found.".to_string()),
+            Err(e) => Err(e.to_string()),
+        }
     }
 
-    pub fn get_files(
-        &self,
-        pool: &DatabaseConnection,
-    ) -> Result<Vec<crate::models::file::File>, String> {
-        let mut db = pool.get().unwrap();
-        use crate::schema::files::dsl::*;
-        files
-            .filter(library_id.eq(&self.id))
-            .get_results(&mut db)
-            .map_err(|_| String::from("not_found"))
+    async fn get_files(&self, db: &DatabaseConnection) -> Result<Vec<file::Model>, String> {
+        self.find_related(File)
+            .all(db)
+            .await
+            .map_err(|e| e.to_string())
     }
 
-    pub fn get_all(pool: &DatabaseConnection) -> Result<Vec<Self>, String> {
-        let mut db = pool.get().unwrap();
-        use crate::schema::libraries::dsl::*;
-        libraries
-            .load::<Self>(&mut db)
-            .map_err(|_| String::from("unknown_error"))
+    async fn get_all(db: &DatabaseConnection) -> Result<Vec<library::Model>, String> {
+        Library::find().all(db).await.map_err(|e| e.to_string())
     }
 
-    pub fn delete(lib_id: String, pool: &DatabaseConnection) -> Result<usize, String> {
-        let mut db = pool.get().unwrap();
-        diesel::delete(
-            crate::schema::files::dsl::files
-                .filter(crate::schema::files::dsl::library_id.eq(&lib_id)),
-        )
-        .execute(&mut db)
-        .map_err(|_| String::from("not_found"))?;
-        use crate::schema::libraries::dsl::*;
-        diesel::delete(libraries.find(&lib_id))
-            .execute(&mut db)
-            .map_err(|_| String::from("not_found"))
+    async fn delete(lib_id: String, db: &DatabaseConnection) -> Result<u64, String> {
+        match Library::delete_by_id(lib_id).exec(db).await {
+            Ok(e) => Ok(e.rows_affected),
+            Err(e) => Err(e.to_string()),
+        }
     }
 
-    pub fn crawl(&self, pool: &DatabaseConnection) {
+    async fn crawl(&self, db: &DatabaseConnection) {
         let mut anitomy = Anitomy::new();
         match crawl(
             Path::new(&self.path),
             self.depth,
             &mut anitomy,
-            pool,
+            db,
             self.id.clone(),
         ) {
             Ok(_) => (),
