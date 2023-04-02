@@ -65,3 +65,5 @@ anitomy = "0.1"
 
 entity = { path = "entity" }
 migration = { path = "migration" }
+
+async-recursion = "1"

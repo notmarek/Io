@@ -29,7 +29,8 @@ impl Claims {
 
     pub fn create_token(&self, key_path: &Path) -> Result<String, Error> {
         let key = std::fs::read(key_path)?;
-        let enc_key = EncodingKey::from_rsa_pem(&key).unwrap();
+        let enc_key = EncodingKey::from_rsa_pem(&key)
+            .map_err(|e| error::ErrorInternalServerError(e.to_string()))?;
         encode(&Header::new(Algorithm::RS512), &self, &enc_key)
             .map_err(|e| error::ErrorUnauthorized(e.to_string()))
     }

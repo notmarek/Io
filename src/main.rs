@@ -4,13 +4,8 @@ use io::{
 };
 use log::{debug, info};
 use migration::MigratorTrait;
-use std::{
-    env,
-    str::FromStr,
-    time::Duration,
-    sync::Arc
-};
-use tokio::sync::{Mutex};
+use std::{env, str::FromStr, sync::Arc, time::Duration};
+use tokio::sync::Mutex;
 use utoipa_swagger_ui::SwaggerUi;
 
 use actix_cors::Cors;
@@ -29,7 +24,6 @@ async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
     loop {
         queue.lock().await.update().await;
         tokio::time::sleep(Duration::from_millis(125)).await;
-        
     }
 }
 

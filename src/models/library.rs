@@ -1,15 +1,14 @@
 use crate::utils::indexer::crawl;
-use anitomy::Anitomy;
 use async_trait::async_trait;
 use entity::prelude::{File, Library};
 use entity::{file, library};
-use log::error;
 use sea_orm::prelude::*;
 use sea_orm::DatabaseConnection;
 use std::path::Path;
 use uuid::Uuid;
 
 #[async_trait]
+#[allow(clippy::new_ret_no_self)]
 pub trait LibraryActions {
     async fn new(
         lib_path: String,
@@ -77,6 +76,8 @@ impl LibraryActions for library::Model {
     }
 
     async fn crawl(&self, db: &DatabaseConnection) {
-        crawl(Path::new(&self.path), self.depth, db, self.id.clone()).unwrap()
+        crawl(Path::new(&self.path), self.depth, db, self.id.clone())
+            .await
+            .unwrap()
     }
 }
