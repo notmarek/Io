@@ -61,7 +61,7 @@ async fn register(
     req_data: web::Json<RegisterRequest>,
 ) -> impl actix_web::Responder {
     let mut user = User::new(req_data.username.clone(), req_data.password.clone(), vec![]);
-    if User::get_all(0, 0, &db).await.len() < 1 {
+    if User::get_all(0, 0, &db).await.is_empty() {
         log::info!("First user registered, promoting to administrator.");
         user.permissions = "verified,administrator".to_string();
     }
