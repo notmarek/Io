@@ -7,7 +7,7 @@ use migration::MigratorTrait;
 use std::{env, str::FromStr, sync::Arc, time::Duration};
 use tokio::sync::Mutex;
 use utoipa_swagger_ui::SwaggerUi;
-
+use actix_files::Files;
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, web::Data, App, HttpServer};
 use chrono::Utc;
@@ -80,6 +80,7 @@ async fn main() -> std::io::Result<()> {
                 SwaggerUi::new("/swagger/{_:.*}")
                     .url("/api-doc/openapi.json", io::docs::ApiDoc::openapi()),
             )
+            .service(Files::new("/", "./static").index_file("index.html"))
             .wrap({
                 if let Some(cors_conf) = &cors {
                     let cors = Cors::default()
