@@ -60,7 +60,11 @@ async fn register(
     db: web::Data<DatabaseConnection>,
     req_data: web::Json<RegisterRequest>,
 ) -> impl actix_web::Responder {
-    let user = User::new(req_data.username.clone(), req_data.password.clone(), vec![]);
+    let mut user = User::new(req_data.username.clone(), req_data.password.clone(), vec![]);
+    if User::get_all(0, 0, &db).await.len() < 1 {
+        log::info!("First user registered, promoting to administrator.");
+        user.permissions = "verified,administrator".to_string();
+    }
     match user
         .register("epicsalt#".to_string(), &db, config.jwt.valid_for)
         .await
