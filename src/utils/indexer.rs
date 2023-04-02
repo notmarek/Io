@@ -14,14 +14,15 @@ pub async fn crawl(
     library_id: String,
 ) -> Result<(), String> {
     debug!("Scanning {}", path.to_str().unwrap());
-    File::new(
+    let mut file = File::new(
         path.parent().unwrap().to_str().unwrap().to_string(),
         library_id.clone(),
         path.to_str().unwrap().to_string(),
         path.is_dir(),
         db,
     )
-    .await;
+    .await?;
+    file.scan(db).await;
     if path.is_dir() {
         let dir = fs::read_dir(path).map_err(|e| e.to_string())?;
         for entry in dir {
@@ -33,20 +34,30 @@ pub async fn crawl(
     }
     Ok(())
 }
-pub fn scan_file(file_path: &Path) -> Result<File, String> {
-    // println!("{}, {}", file_path.to_string_lossy(), file_path.is_dir());
-    // return();
+pub async fn scan_file(file_path: &Path) -> Result<File, String> {
     let mut anitomy: Anitomy = Anitomy::new();
-    let metadata = fs::metadata(file_path).unwrap();
+    let metadata = fs::metadata(file_path).map_err(|e| e.to_string())?;
     match anitomy.parse(file_path.file_name().unwrap().to_str().unwrap()) {
         Ok(ref elements) => {
-            // println!("SUCCESS: Parsed the filename successfully!");
-            return Ok(File {
+            debug!(
+                "Scanning {:#?}: {} #{} by {}",
+                file_path,
+                elements
+                    .get(anitomy::ElementCategory::AnimeTitle)
+                    .unwrap_or_default(),
+                elements
+                    .get(anitomy::ElementCategory::EpisodeNumber)
+                    .unwrap_or_default(),
+                elements
+                    .get(anitomy::ElementCategory::ReleaseGroup)
+                    .unwrap_or_default()
+            );
+            Ok(File {
                 last_update: metadata
                     .modified()
                     .unwrap()
                     .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap()
+                    .map_err(|e| e.to_string())?
                     .as_secs()
                     .to_string(),
                 title: Some(
@@ -66,7 +77,7 @@ pub fn scan_file(file_path: &Path) -> Result<File, String> {
                         .get(anitomy::ElementCategory::EpisodeNumber)
                         .unwrap()
                         .parse::<i32>()
-                        .unwrap(),
+                        .map_err(|e| e.to_string())?,
                 ),
                 release_group: Some(
                     elements
@@ -76,19 +87,9 @@ pub fn scan_file(file_path: &Path) -> Result<File, String> {
                 ),
                 size: Some(metadata.len() as i32),
                 ..Default::default()
-            });
-            // println!(
-            //     "It is: {} #{} by {}",
-            // elements.get(ElementCategory::AnimeTitle).unwrap_or_default()
-            //     elements.get(ElementCategory::EpisodeNumber).unwrap_or_default(),
-            //     elements.get(ElementCategory::ReleaseGroup).unwrap_or_default()
-            // );
+            })
         }
-        Err(ref _elements) => {
-            Err(String::from("Anitomy died nigga"))
-            // println!("ERROR: Couldn't parse the filename successfully!");
-            // println!("But we managed to extract these elements: {:#?}", &**elements);
-        }
+        Err(ref _elements) => Err(String::from("Anitomy died nigga")),
     }
 }
 

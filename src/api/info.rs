@@ -1,7 +1,6 @@
 use crate::{config::Config, Session};
 use actix_web::get;
 use actix_web::web;
-use actix_web::web::Data;
 use chrono::Utc;
 use sea_orm::DatabaseConnection;
 use serde::Serialize;

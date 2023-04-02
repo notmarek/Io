@@ -7,6 +7,7 @@ use std::path::Path;
 use uuid::Uuid;
 
 #[async_trait]
+#[allow(clippy::new_ret_no_self)]
 pub trait FileActions {
     async fn new(
         parent: String,
@@ -29,7 +30,7 @@ impl FileActions for file::Model {
         path: String,
         folder: bool,
         db: &DatabaseConnection,
-    ) -> Result<file::Model, String> {
+    ) -> Result<Self, String> {
         match File::find()
             .filter(file::Column::Path.eq(&path))
             .one(db)
@@ -62,7 +63,10 @@ impl FileActions for file::Model {
     }
 
     async fn scan(&mut self, db: &DatabaseConnection) {
-        if let Ok(scanned) = scan_file(Path::new(&self.path)) {
+        if self.size.is_some() {
+            return;
+        }
+        if let Ok(scanned) = scan_file(Path::new(&self.path)).await {
             self.last_update = scanned.last_update.to_string();
             self.title = scanned.title;
             self.season = scanned.season;
@@ -72,8 +76,6 @@ impl FileActions for file::Model {
             let active: file::ActiveModel = self.clone().into();
             active.update(db).await.unwrap();
         }
-
-        // todo!("handle errors in scan_file")
     }
 
     async fn get_folder_content(

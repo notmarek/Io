@@ -8,6 +8,7 @@ use std::path::Path;
 use uuid::Uuid;
 
 #[async_trait]
+#[allow(clippy::new_ret_no_self)]
 pub trait LibraryActions {
     async fn new(
         lib_path: String,

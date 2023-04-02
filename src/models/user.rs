@@ -22,6 +22,7 @@ pub fn hash_password(password: String, salt: String) -> String {
 }
 
 #[async_trait]
+#[allow(clippy::new_ret_no_self)]
 pub trait UserActions {
     fn has_permission_one_of<T: Display>(&self, perms: Vec<T>) -> bool;
     async fn register(
