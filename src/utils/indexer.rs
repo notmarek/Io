@@ -1,42 +1,37 @@
 use crate::models::file::FileActions;
 use anitomy::Anitomy;
+use async_recursion::async_recursion;
 use entity::file::Model as File;
-use futures::Future;
 use log::debug;
 use sea_orm::DatabaseConnection;
 use std::{fs, path::Path, time::SystemTime};
 
-pub fn crawl(
+#[async_recursion]
+pub async fn crawl(
     path: &Path,
     depth_ttl: i32,
     db: &DatabaseConnection,
     library_id: String,
 ) -> Result<(), String> {
-    todo!("Figure this shit out wth.");
     debug!("Scanning {}", path.to_str().unwrap());
-    // File::new(
-    //     path.parent().unwrap().to_str().unwrap().to_string(),
-    //     library_id.clone(),
-    //     path.to_str().unwrap().to_string(),
-    //     path.is_dir(),
-    //     db,
-    // ).await;
-    // if path.is_dir() {
-    //     let dir = fs::read_dir(path);
-    //     if dir.is_err() {
-    //         return  Box::pin(async move { Err(String::from("error")) });
-    //     }
-    //     for entry in dir.unwrap() {
-    //         //unwrap should be safe?
-
-    //         let entry = entry.map_err(|_| String::from("the entry is broken bruyh")).unwrap();
-    //         let path = entry.path();
-    //         if depth_ttl != 0 {
-    //             Box::pin(crawl(&path, depth_ttl - 1,  db, library_id.clone()).await?);
-    //         }
-    //     }
-    // }
-    // Box::pin(async move { Ok(()) })
+    File::new(
+        path.parent().unwrap().to_str().unwrap().to_string(),
+        library_id.clone(),
+        path.to_str().unwrap().to_string(),
+        path.is_dir(),
+        db,
+    )
+    .await;
+    if path.is_dir() {
+        let dir = fs::read_dir(path).map_err(|e| e.to_string())?;
+        for entry in dir {
+            let path = entry.map_err(|e| e.to_string())?.path();
+            if depth_ttl != 0 {
+                crawl(&path, depth_ttl - 1, db, library_id.clone()).await?;
+            }
+        }
+    }
+    Ok(())
 }
 pub fn scan_file(file_path: &Path) -> Result<File, String> {
     // println!("{}, {}", file_path.to_string_lossy(), file_path.is_dir());
