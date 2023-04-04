@@ -27,6 +27,10 @@ async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
     }
 }
 
+async fn index() -> impl actix_web::Responder {
+    actix_files::NamedFile::open_async("./static/index.html").await.unwrap()
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::formatted_builder()
@@ -80,7 +84,7 @@ async fn main() -> std::io::Result<()> {
                 SwaggerUi::new("/swagger/{_:.*}")
                     .url("/api-doc/openapi.json", io::docs::ApiDoc::openapi()),
             )
-            .service(Files::new("/", "./static").index_file("index.html"))
+            .service(Files::new("/js/", "./static/js"))
             .wrap({
                 if let Some(cors_conf) = &cors {
                     let cors = Cors::default()
@@ -105,6 +109,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Compress::default())
             .configure(api::configure)
             .configure(api::configure_no_auth)
+            .default_service(actix_web::web::route().to(index))
     })
     .bind((address, port))?
     .run()
