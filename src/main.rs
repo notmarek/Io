@@ -1,17 +1,17 @@
+use actix_cors::Cors;
+use actix_files::Files;
+use actix_web::{http::header, middleware, web::Data, App, HttpServer};
+use chrono::Utc;
 use io::{
     eventqueue::{Queue, QueueTrait},
     ArcQueue,
 };
 use log::{debug, info};
 use migration::MigratorTrait;
+use sea_orm::{Database, DatabaseConnection};
 use std::{env, str::FromStr, sync::Arc, time::Duration};
 use tokio::sync::Mutex;
 use utoipa_swagger_ui::SwaggerUi;
-use actix_files::Files;
-use actix_cors::Cors;
-use actix_web::{http::header, middleware, web::Data, App, HttpServer};
-use chrono::Utc;
-use sea_orm::{Database, DatabaseConnection};
 // let db: DatabaseConnection = Database::connect("protocol://username:password@host/database").await?;
 use io::Session;
 // use io::utils::indexer::test_kool;
@@ -28,7 +28,9 @@ async fn run_queue(queue: Arc<Mutex<dyn QueueTrait>>) {
 }
 
 async fn index() -> impl actix_web::Responder {
-    actix_files::NamedFile::open_async("./static/index.html").await.unwrap()
+    actix_files::NamedFile::open_async("./static/index.html")
+        .await
+        .unwrap()
 }
 
 #[actix_web::main]
