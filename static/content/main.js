@@ -1,3 +1,6 @@
+import { submit } from './api.js'
+import { get_info } from './api_client.js';
+console.log(await get_info())
 let path = window.location.pathname;
 window.addEventListener("locationchange", () => { path = window.location.pathname; render(); });
 window.addEventListener("popstate", () => { window.dispatchEvent(new Event("locationchange")); console.log("popstae") });
@@ -13,6 +16,10 @@ const render = () => {
         },
         "/help": () => {
             document.body.innerHTML = "go fuck yourself"
+        },
+        "/user/login": () => {
+            fetch("/content/modules/user/login.html").then(r => r.text())
+            .then(r => document.body.innerHTML = r)
         }
         
     };

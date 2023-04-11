@@ -86,7 +86,7 @@ async fn main() -> std::io::Result<()> {
                 SwaggerUi::new("/swagger/{_:.*}")
                     .url("/api-doc/openapi.json", io::docs::ApiDoc::openapi()),
             )
-            .service(Files::new("/js/", "./static/js"))
+            .service(Files::new("/content/", "./static/content"))
             .wrap({
                 if let Some(cors_conf) = &cors {
                     let cors = Cors::default()
