@@ -52,7 +52,7 @@ jobs:
         run: tar czvf Io-amd64.tar.gz target
       - uses: actions/upload-artifact@master
         with:
-          name: Io-amd64
+          name: io-amd64
           path: Io-amd64.tar.gz
           
   publish:
