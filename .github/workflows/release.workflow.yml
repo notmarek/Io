@@ -19,7 +19,7 @@ jobs:
           command: build
           args: --release
       - name: Archive artifacts
-        run: mkdir out && mv target/release/io out && mv static out/static && tar czvf Io-arn64.tar.gz out/*
+        run: mkdir out && mv target/release/io out && mv static out/static && tar czvf Io-arm64.tar.gz out/*
       - uses: actions/upload-artifact@master
         with:
           name: io-arm64
