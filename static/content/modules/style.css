@@ -1,0 +1,105 @@
+
+
+body {
+    margin: 0;
+    background-color: #121212;
+    color: white;
+}
+
+#header {
+    display: flex;
+    background-color: #ff0069;
+    overflow: hidden;
+    padding: 0 20px;
+    align-items: center;
+    overflow: none;
+}
+
+#header .logo {
+    padding: 0;
+    margin: 0;
+}
+
+#header .buttons {
+    justify-content: right;
+    width: 100%;
+    display: flex;
+    padding: 0 20px;
+}
+
+.buttons a {
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+.buttons a:hover {
+    background-color: #121212;
+}
+
+.btn {
+    padding: 10px;
+    min-width: 90px;
+    margin: 6px;
+    font-size: 1.2em;
+    color: white;
+    border-radius: 3px;
+    /* border: solid 1.5px ; */
+}
+a {
+    text-decoration: none;
+    color: white;
+}
+.btn.primary {
+    background-color: #ff0069;
+    border: solid 2px #ff0069;
+}
+.btn.secondary {
+    border: solid 2px #ff0069;
+    color: white;
+}
+.btn:hover {
+    cursor: pointer;    
+}
+
+#error {
+    color: red;
+}
+
+input {
+    padding: 10px;
+    margin: 10px;
+    min-width: 90px;
+    border: solid 2px white;
+    border-radius: 3px;
+}
+
+form {
+    display: flex;
+    flex-direction: column  ;
+}
+
+.secondary {
+    color: #a7a7a7;
+}
+a.secondary {
+    color: #5c5c5c;
+}
+.btn.secondary:hover {
+    background-color: #ff0069;
+    transition-duration: 0.5s;
+    
+}
+
+div.bigaf {
+    /* height: 100%; */
+    min-height: 70vh;
+    padding: 40px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items:  center;
+    flex-direction: column;
+}
