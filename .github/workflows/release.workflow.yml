@@ -1,0 +1,78 @@
+on: workflow_dispatch
+name: Release
+jobs: 
+  buildarm:
+    name: Build Arm64
+    runs-on: buildjet-4vcpu-ubuntu-2204-arm
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build release
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - name: Set outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Archive artifacts
+        run: tar czvf Io-arm64.tar.gz target
+      - uses: actions/upload-artifact@master
+        with:
+          name: io-arm64
+          path: Io-arm64.tar.gz
+
+  buildamd64:
+    name: Build amd64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build release
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - name: Set outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Archive artifacts
+        run: tar czvf Io-amd64.tar.gz target
+      - uses: actions/upload-artifact@master
+        with:
+          name: Io-amd64
+          path: Io-amd64.tar.gz
+          
+  publish:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: [buildarm, buildamd64]
+    steps:
+      - name: Create Release
+        uses: actions/download-artifact@master
+        with:
+            name: io-arm64
+            path: Io-arm64.tar.gz
+      - uses: actions/download-artifact@master
+        with:
+            name: io-amd64
+            path: Io-amd64.tar.gz
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: release
+          files:  |
+            Io-arm64.tar.gz
+            Io-amd64.tar.gz
+          prerelease: false
