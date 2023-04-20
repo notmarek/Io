@@ -1,4 +1,4 @@
-import { submit, navigate } from './api.js'
+import { submit, navigate, token, self } from './api.js'
 import { get_info } from './api_client.js';
 console.log(await get_info());
 window.submit = submit;
@@ -15,21 +15,36 @@ window.addEventListener(`click`, e => {
 });
 
 
-let token = () => {
-    return localStorage.getItem("token");
-}
 
 let renderModule = (path, dom_id) => {
+    let el = document.querySelector(dom_id);
     fetch(`/content/modules/${path}`).then(r => r.text())
-    .then(r => document.querySelector(dom_id).innerHTML = r)
+    .then(r => el.innerHTML = r).then(_ => {
+        for (let script of el.querySelectorAll("script")) {
+            const blob = new Blob([script.innerText], {
+                type: "application/javascript",
+            });
+            let uri = URL.createObjectURL(blob);
+            let module = import(uri);
+            
+            module.then(e=>e.run());
+            let fn = (script.innerText);
+            console.log("this is ", this)
+            fn.call(execution_context_hack);
+        }
+    });
 }
 
 const render = () => {
     
     let obj = {
-        "/": () => {
+        "/": async () => {
             if (token()) {
-                renderModule('home/authenticated.html', "#main");
+                if (!(await self.get_permissions()).contains("verified")){
+                    renderModule("home/unverified.html", "#main")
+                } else {
+                    renderModule('home/authenticated.html', "#main");
+                }
             } else {
                 renderModule('home/unauthenticated.html', "#main");
             }
@@ -39,8 +54,14 @@ const render = () => {
         },
         "/user/login": () => {
             renderModule("user/login.html", "#main")
+        },
+        "/user/logout": () => {
+            localStorage.clear();
+            navigate("/");
+        },
+        "/user/register": () => {
+            renderModule("user/register.html", "#main")
         }
-        
     };
 
     if (token())
@@ -52,8 +73,10 @@ const render = () => {
     if (fn != undefined)
         fn();
     else {
-        console.log("Oh no", path)
-        navigate("/");
+        console.log(path);
+        renderModule(path.slice(1), "#main");
+        // console.log("Oh no", path)
+        // navigate("/");
     }
     
     
