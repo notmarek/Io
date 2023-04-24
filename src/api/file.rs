@@ -1,4 +1,4 @@
-use crate::{models::file::FileActions, AuthData, ErrorResponse, Response};
+use crate::{models::file::FileActions, ErrorResponse, Response, VerifiedAuthData};
 use actix_web::{error, get, web, HttpResponse};
 use entity::file::Model as File;
 use sea_orm::DatabaseConnection;
@@ -31,7 +31,7 @@ impl FileId {
 async fn file(
     fid: web::Path<FileId>,
     db: web::Data<DatabaseConnection>,
-    AuthData(_user): AuthData,
+    VerifiedAuthData(_user): VerifiedAuthData,
 ) -> impl actix_web::Responder {
     let file = fid.get(&db).await;
     if let Err(e) = file {

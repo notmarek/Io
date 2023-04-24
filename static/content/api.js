@@ -22,9 +22,14 @@ export let self = {
 }
 
 export let save_user_info = async () => {
-    let info = await user.info("@me");
-    localStorage.setItem("username", info.username);
-    localStorage.setItem("permissions", info.permissions);
+    let info;
+    try {
+        info = await user.info("@me");
+        localStorage.setItem("username", info.username);
+        localStorage.setItem("permissions", info.permissions);
+    } catch {
+        info = { permissions: "" };
+    }
     return info;
 }
 

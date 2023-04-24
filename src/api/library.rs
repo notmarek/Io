@@ -1,7 +1,7 @@
 use crate::{
     eventqueue::{QueueTrait, RawEvent},
     models::{library::LibraryActions, user::UserActions},
-    ArcQueue, AuthData, ErrorResponse, Response,
+    ArcQueue, ErrorResponse, Response, VerifiedAuthData,
 };
 use actix_web::{delete, get, post, put};
 use actix_web::{error, web, HttpResponse};
@@ -29,7 +29,7 @@ pub struct LibId {
 #[get("/library/all")]
 async fn libraries(
     db: web::Data<DatabaseConnection>,
-    AuthData(_user): AuthData,
+    VerifiedAuthData(_user): VerifiedAuthData,
 ) -> impl actix_web::Responder {
     let libraries = {
         match Library::get_all(&db).await {
@@ -65,7 +65,7 @@ async fn libraries(
 async fn library(
     path: web::Path<LibId>,
     db: web::Data<DatabaseConnection>,
-    AuthData(_user): AuthData,
+    VerifiedAuthData(_user): VerifiedAuthData,
 ) -> impl actix_web::Responder {
     #[derive(Serialize)]
     struct Bruh {
@@ -109,7 +109,7 @@ async fn scan_library(
     path: web::Path<LibId>,
     db: web::Data<DatabaseConnection>,
     queue: web::Data<ArcQueue>,
-    AuthData(user): AuthData,
+    VerifiedAuthData(user): VerifiedAuthData,
 ) -> impl actix_web::Responder {
     if !user.has_permission_one_of(vec!["scan_library", "*_library", "administrator"]) {
         return Err(error::ErrorForbidden(ErrorResponse {
@@ -151,7 +151,7 @@ async fn scan_library(
 async fn delete_library(
     path: web::Path<LibId>,
     db: web::Data<DatabaseConnection>,
-    AuthData(user): AuthData,
+    VerifiedAuthData(user): VerifiedAuthData,
 ) -> impl actix_web::Responder {
     if !user.has_permission_one_of(vec!["delete_library", "*_library", "administrator"]) {
         return Err(error::ErrorForbidden(ErrorResponse {
@@ -192,7 +192,7 @@ pub struct Lib {
 async fn create_library(
     data: web::Json<Lib>,
     db: web::Data<DatabaseConnection>,
-    AuthData(user): AuthData,
+    VerifiedAuthData(user): VerifiedAuthData,
 ) -> impl actix_web::Responder {
     if !user.has_permission_one_of(vec!["create_library", "*_library", "administrator"]) {
         return Err(error::ErrorForbidden(ErrorResponse {

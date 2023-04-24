@@ -40,7 +40,7 @@ const render = () => {
     let obj = {
         "/": async () => {
             if (token()) {
-                if (!(await self.get_permissions()).contains("verified")){
+                if (!(await self.get_permissions()).includes("verified")){
                     renderModule("home/unverified.html", "#main")
                 } else {
                     renderModule('home/authenticated.html', "#main");

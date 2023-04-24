@@ -61,13 +61,7 @@ impl UserActions for user::Model {
 
     async fn get(uuid: String, db: &DatabaseConnection) -> Result<user::Model, String> {
         match User::find_by_id(&uuid).one(db).await {
-            Ok(Some(u)) => {
-                if !u.has_permission_one_of(vec!["verified"]) {
-                    Err(String::from("unverified_user"))
-                } else {
-                    Ok(u)
-                }
-            }
+            Ok(Some(u)) => Ok(u),
             Ok(None) => Err(String::from("invalid_user")),
             Err(e) => Err(e.to_string()),
         }

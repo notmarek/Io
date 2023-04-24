@@ -1,8 +1,8 @@
 use crate::auth::Claims;
 use crate::config::Config;
 use crate::models::user::UserActions;
-use crate::AuthData;
 use crate::ErrorResponse;
+use crate::{AuthData, VerifiedAuthData};
 use actix_web::{error, web, HttpResponse};
 use actix_web::{get, post, put};
 use entity::user::Model as User;
@@ -230,7 +230,7 @@ async fn user_info(
 )]
 #[get("/users")]
 async fn user_list(
-    AuthData(user): AuthData,
+    VerifiedAuthData(user): VerifiedAuthData,
     db: web::Data<DatabaseConnection>,
     query: web::Query<LimitQuery>,
 ) -> actix_web::Result<impl actix_web::Responder> {

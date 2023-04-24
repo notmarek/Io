@@ -5,12 +5,12 @@ use actix_web::HttpResponse;
 use actix_web::ResponseError;
 use eventqueue::Queue;
 use futures::future::{ready, Ready};
+use models::user::UserActions;
 use serde::Serialize;
 use std::fmt::Display;
 use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::Mutex;
-
 // #[macro_use]
 // extern crate diesel;
 extern crate argon2;
@@ -83,5 +83,27 @@ impl FromRequest for AuthData {
     type Future = Ready<Result<Self, Self::Error>>;
     fn from_request(req: &HttpRequest, _payload: &mut actix_http::Payload) -> Self::Future {
         ready(req.extensions().get().map(Self::clone).ok_or(Unauthorized))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct VerifiedAuthData(pub entity::user::Model);
+impl FromRequest for VerifiedAuthData {
+    type Error = Unauthorized;
+    type Future = Ready<Result<Self, Self::Error>>;
+    fn from_request(req: &HttpRequest, _payload: &mut actix_http::Payload) -> Self::Future {
+        let ad: Result<AuthData, Self::Error> = req
+            .extensions()
+            .get()
+            .map(AuthData::clone)
+            .ok_or(Unauthorized);
+        let vad: Result<Self, Self::Error> = match ad {
+            Ok(AuthData(user)) => match user.has_permission_one_of(vec!["verified"]) {
+                true => Ok(VerifiedAuthData(user)),
+                false => Err(Unauthorized),
+            },
+            Err(e) => Err(e),
+        };
+        ready(vad)
     }
 }
