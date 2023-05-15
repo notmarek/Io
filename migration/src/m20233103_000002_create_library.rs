@@ -25,6 +25,7 @@ impl MigrationTrait for Migration {
                     .table(Library::Table)
                     .if_not_exists()
                     .col(ColumnDef::new(Library::Id).uuid().not_null().primary_key())
+                    .col(ColumnDef::new(Library::Name).string().not_null())
                     .col(ColumnDef::new(Library::Path).string().not_null())
                     .col(ColumnDef::new(Library::Depth).integer().not_null())
                     .col(ColumnDef::new(Library::LastScan).timestamp().not_null())
@@ -44,6 +45,7 @@ impl MigrationTrait for Migration {
 pub enum Library {
     Table,
     Id,
+    Name,
     Path,
     Depth,
     #[iden = "last_scan"]

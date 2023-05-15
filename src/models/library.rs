@@ -11,8 +11,9 @@ use uuid::Uuid;
 #[allow(clippy::new_ret_no_self)]
 pub trait LibraryActions {
     async fn new(
-        lib_path: String,
-        lib_depth: i32,
+        name: String,
+        path: String,
+        depth: i32,
         db: &DatabaseConnection,
     ) -> Result<library::Model, String>;
     async fn get(lib_id: String, db: &DatabaseConnection) -> Result<library::Model, String>;
@@ -25,12 +26,13 @@ pub trait LibraryActions {
 #[async_trait]
 impl LibraryActions for library::Model {
     async fn new(
-        lib_path: String,
-        lib_depth: i32,
+        name: String,
+        path: String,
+        depth: i32,
         db: &DatabaseConnection,
     ) -> Result<library::Model, String> {
         match Library::find()
-            .filter(library::Column::Path.eq(&lib_path))
+            .filter(library::Column::Path.eq(&path))
             .one(db)
             .await
         {
@@ -38,8 +40,9 @@ impl LibraryActions for library::Model {
             Ok(None) => {
                 let active: library::ActiveModel = library::Model {
                     id: Uuid::new_v4().to_string(),
-                    path: lib_path,
-                    depth: lib_depth,
+                    name,
+                    path,
+                    depth,
                     last_scan: 0.to_string(),
                 }
                 .into();

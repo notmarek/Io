@@ -10,6 +10,7 @@ use entity::library::Model as Library;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams, ToSchema};
+
 #[derive(IntoParams, Deserialize)]
 pub struct LibId {
     library_id: String,
@@ -173,6 +174,7 @@ async fn delete_library(
 
 #[derive(Deserialize, ToSchema)]
 pub struct Lib {
+    name: String,
     path: String,
     depth: i32,
 }
@@ -200,7 +202,7 @@ async fn create_library(
             error: "missing_permissions".to_string(),
         }));
     }
-    let lib = Library::new(data.path.clone(), data.depth, &db).await;
+    let lib = Library::new(data.name.clone(), data.path.clone(), data.depth, &db).await;
     Ok(HttpResponse::Ok().json(Response {
         status: "ok".to_string(),
         data: lib,

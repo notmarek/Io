@@ -9,6 +9,7 @@ use utoipa::ToSchema;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: String,
+    pub name: String,
     pub path: String,
     pub depth: i32,
     pub last_scan: String,
