@@ -56,7 +56,7 @@ impl MigrationTrait for Migration {
                     .foreign_key(
                         ForeignKey::create()
                             .from_tbl(File::Table)
-                            .from_col(File::LastUpdate)
+                            .from_col(File::LibraryId)
                             .to_tbl(Library::Table)
                             .to_col(Library::Id)
                             .on_delete(ForeignKeyAction::Cascade),
