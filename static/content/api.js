@@ -1,4 +1,4 @@
-import { user } from "./api_client.js";
+import { user, library } from "./api_client.js";
 export let navigate = (p) => {
     history.pushState({}, document.title, p);
     window.dispatchEvent(new Event("popstate"));
@@ -6,6 +6,7 @@ export let navigate = (p) => {
 
 export let self = {
     get_username: async () => {
+        console.log(await library.all());
         let u = localStorage.getItem("username");
         if (!u) {
             return (await save_user_info())["username"]

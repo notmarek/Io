@@ -104,3 +104,37 @@ div.bigaf {
     align-items:  center;
     flex-direction: column;
 }
+
+#grid {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+}
+
+.item {
+    display: grid;
+    /* justify-content: center; */
+    /* align-items: center; */
+    grid-template-columns: 1.5fr 0.75fr 0.75fr;
+    text-align: center;
+    /* border: solid 2px #ff0069; */
+    width: 100%;
+    padding: 10px;
+    margin: 0px 0px;
+}
+
+.item div.item-title {
+    text-align: left;
+}
+
+.item:hover {
+    background-color: #ff0069;
+    /* transition-duration: 0.5s; */
+
+}
+
+.item:hover div.item-title {
+    
+    text-decoration: underline 1px white;
+    /* transition: transform .3s cubic-bezier(.86,0,.07,1); */
+}

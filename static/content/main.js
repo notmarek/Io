@@ -28,9 +28,6 @@ let renderModule = (path, dom_id) => {
             let module = import(uri);
             
             module.then(e=>e.run());
-            let fn = (script.innerText);
-            console.log("this is ", this)
-            fn.call(execution_context_hack);
         }
     });
 }
@@ -73,6 +70,7 @@ const render = () => {
     if (fn != undefined)
         fn();
     else {
+        // if  \/library\/(.*?)/
         console.log(path);
         renderModule(path.slice(1), "#main");
         // console.log("Oh no", path)

@@ -42,6 +42,7 @@ async fn main() -> std::io::Result<()> {
             )
             .unwrap_or(log::LevelFilter::Trace),
         )
+        .filter_module("sqlx::query", log::LevelFilter::Warn)
         .init();
     debug!("Initalized logger!");
     let conf_path = "config.json";
