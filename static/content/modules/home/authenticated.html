@@ -1,56 +1,28 @@
 <div class="bigaf">
-    <h1 class="primary">
-        The library
-    </h1>
-    <h2 class="secondary">
-        All you can eat.
-    </h2>
+    <h1 class="primary">The library</h1>
+    <h2 class="secondary">All you can eat.</h2>
     <div id="grid">
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
+        <a style="display: none" id="blueprint" href="#" class="item">
+            <div class="item-title">-</div>
+            <div class="item-size">-</div>
+            <div class="item-time">-</div>
         </a>
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
-        </a>
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
-        </a>
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
-        </a>
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
-        </a>
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
-        </a>
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
-        </a>
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
-        </a>
-        <a href="/kek" class="item">
-            <div class="item-title">Movies</div>
-            <div>-</div>
-            <div>-</div>
-        </a>    
 
+        <script type="module">
+            import { library } from "/content/api_client.js";
+            export const run = async () => {
+                let blueprint = document.getElementById("blueprint");
+                let grid = document.getElementById("grid");
+                let libraries = (await library.all()).data;
+                for (const entry of libraries) {
+                    console.log(entry);
+                    let item = blueprint.cloneNode(true);
+                    item.style = null;
+                    item.href = "/library/" + entry.id;
+                    item.querySelector(".item-title").innerText = entry.name;
+                    grid.appendChild(item);
+                }
+            };
+        </script>
     </div>
 </div>

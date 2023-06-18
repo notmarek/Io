@@ -6,7 +6,6 @@ export let navigate = (p) => {
 
 export let self = {
     get_username: async () => {
-        console.log(await library.all());
         let u = localStorage.getItem("username");
         if (!u) {
             return (await save_user_info())["username"]

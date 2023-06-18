@@ -14,14 +14,29 @@ window.addEventListener(`click`, e => {
     }
 });
 
+const dbgr = async () => {
+    let container = document.createElement("div");
+    window.showDbgr = () => container.hidden = false;
+    container.onclick = (e) => container.hidden = 1;
+    container.style = "z-index:99999999; position: absolute; top:0;left:0;background: #000000af;padding:5px;";
+    container.innerHTML = `Endpoint: ${location.host}<br>
+    Module: <span id="dbgr-path">${path}</span><br>
+    Username: ${await self.get_username()}<br>
+    Permissions: ${await self.get_permissions()}`;
+
+    document.body.appendChild(container)
+}   
 
 
 let renderModule = (path, dom_id) => {
+    document.querySelector("#dbgr-path").innerText = path;
     let el = document.querySelector(dom_id);
     fetch(`/content/modules/${path}`).then(r => r.text())
     .then(r => el.innerHTML = r).then(_ => {
         for (let script of el.querySelectorAll("script")) {
-            const blob = new Blob([script.innerText], {
+            let mutated = script.innerText.replace("from \"", `from "${location.origin}`);
+            mutated = mutated.replace("console.log", `console.log.bind(console, "%c[Modules/${path}]", "color: #ff0069")`);
+            const blob = new Blob([mutated], {
                 type: "application/javascript",
             });
             let uri = URL.createObjectURL(blob);
@@ -60,15 +75,15 @@ const render = () => {
             renderModule("user/register.html", "#main")
         }
     };
-
+    
     if (token())
-        renderModule("header/authenticated.html", "#header div.buttons");
+    renderModule("header/authenticated.html", "#header div.buttons");
     else
-        renderModule("header/unauthenticated.html", "#header div.buttons");
-
+    renderModule("header/unauthenticated.html", "#header div.buttons");
+    
     let fn = obj[path];
     if (fn != undefined)
-        fn();
+    fn();
     else {
         // if  \/library\/(.*?)/
         console.log(path);
@@ -79,4 +94,5 @@ const render = () => {
     
     
 }
+await dbgr();
 render();
