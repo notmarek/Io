@@ -44,7 +44,7 @@ impl FileActions for file::Model {
                     library_id,
                     path,
                     folder,
-                    last_update: "0".to_string(),
+                    last_update: chrono::NaiveDateTime::MIN,
                     ..Default::default()
                 }
                 .into();
@@ -67,13 +67,15 @@ impl FileActions for file::Model {
             return;
         }
         if let Ok(scanned) = scan_file(Path::new(&self.path)).await {
-            self.last_update = scanned.last_update.to_string();
             self.title = scanned.title;
             self.season = scanned.season;
             self.episode = scanned.episode;
             self.release_group = scanned.release_group;
             self.size = scanned.size;
-            let active: file::ActiveModel = self.clone().into();
+            log::info!("{:#?}", self);
+            let mut active: file::ActiveModel = self.clone().into();
+            active.last_update = sea_orm::ActiveValue::set(scanned.last_update);
+            log::info!("active : {:#?}", active);
             active.update(db).await.unwrap();
         }
     }

@@ -15,7 +15,7 @@ pub struct Model {
     pub library_id: String,
     pub path: String,
     pub folder: bool,
-    pub last_update: String,
+    pub last_update: DateTime,
     pub title: Option<String>,
     pub season: Option<String>,
     pub episode: Option<i32>,

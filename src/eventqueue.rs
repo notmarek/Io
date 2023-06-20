@@ -29,6 +29,7 @@ impl RawEvent {
             Self::ScanLibraryEvent { library } => {
                 if let Some(db) = db {
                     library.crawl(&db).await;
+                    info!("we are here lol");
                 } else {
                     info!("No pool provided. Library scanning unavailable")
                 }

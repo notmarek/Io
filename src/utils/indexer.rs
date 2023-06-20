@@ -53,38 +53,27 @@ pub async fn scan_file(file_path: &Path) -> Result<File, String> {
                     .unwrap_or_default()
             );
             Ok(File {
-                last_update: metadata
-                    .modified()
-                    .unwrap()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .map_err(|e| e.to_string())?
-                    .as_secs()
-                    .to_string(),
-                title: Some(
-                    elements
-                        .get(anitomy::ElementCategory::AnimeTitle)
+                last_update: chrono::NaiveDateTime::from_timestamp(
+                    metadata
+                        .modified()
                         .unwrap()
-                        .to_string(),
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .map_err(|e| e.to_string())?
+                        .as_secs() as i64,
+                    0,
                 ),
-                season: Some(
-                    elements
-                        .get(anitomy::ElementCategory::AnimeSeason)
-                        .unwrap()
-                        .to_string(),
-                ),
-                episode: Some(
-                    elements
-                        .get(anitomy::ElementCategory::EpisodeNumber)
-                        .unwrap()
-                        .parse::<i32>()
-                        .map_err(|e| e.to_string())?,
-                ),
-                release_group: Some(
-                    elements
-                        .get(anitomy::ElementCategory::ReleaseGroup)
-                        .unwrap()
-                        .to_string(),
-                ),
+                title: elements
+                    .get(anitomy::ElementCategory::AnimeTitle)
+                    .map_or(None, |e| Some(e.to_string())),
+                season: elements
+                    .get(anitomy::ElementCategory::AnimeSeason)
+                    .map_or(None, |e| Some(e.to_string())),
+                episode: elements
+                    .get(anitomy::ElementCategory::EpisodeNumber)
+                    .map_or(None, |e| e.parse::<i32>().ok()),
+                release_group: elements
+                    .get(anitomy::ElementCategory::ReleaseGroup)
+                    .map_or(None, |e| Some(e.to_string())),
                 size: Some(metadata.len() as i32),
                 ..Default::default()
             })
