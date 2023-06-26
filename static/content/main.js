@@ -70,12 +70,20 @@ const setup_storage = () => {
     };
 };
 
+let get_module = async (path) => {
+    return Promise.resolve(
+        window.session.get(`/content/modules/${path}`) ||
+            (await fetch(`/content/modules/${path}`).then((r) =>
+                window.session.set(`/content/modules/${path}`, r.text())
+            ))
+    );
+};
+
 let renderModule = (path, dom_id, variables = null) => {
     document.querySelector("#dbgr-path").innerText = path;
     let hash = hashCode(path);
     let el = document.querySelector(dom_id);
-    fetch(`/content/modules/${path}`)
-        .then((r) => r.text())
+    get_module(path)
         .then((r) => {
             // Templating like variable injection
             if (variables) {
