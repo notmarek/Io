@@ -27,7 +27,7 @@ import { self } from "/content/api.js";
 //         :11tt.tCLffffffffffLLLCCi,,;.iLt1C08888GfffLLtff1ftf,;0GGGGCfLCCf.
 </script>
 <div module>
-    <a href="#" id="username"></a>
+    <a id="username" onclick="return ((e) => { e.preventDefault(); showDbgr(); return false; })(event)"></a>
     <a href="/user/settings">Settings</a>
     <a href="/user/logout">Logout</a>
 </div>

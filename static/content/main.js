@@ -22,11 +22,37 @@ const dbgr = async () => {
 
     container.style =
         "z-index:99999999; position: absolute; top:0;left:0;background: #000000af;padding:5px;";
-    container.innerHTML = `Endpoint: ${location.host}<br>
-    Module: <span id="dbgr-path">${path}</span><br>
-    Username: ${await self.get_username()}<br>
-    Permissions: ${await self.get_permissions()}<br>
-    Loaded modules: <span id="dbgr-num-modules">null</span>`;
+    container.innerHTML = `[Server] host: ${location.host}
+    <br>[User] username: ${await self.get_username()}
+    permissions: ${await self.get_permissions()}
+    <br>[Modules] main: <span id="dbgr-path">${path}</span>
+    rendered: <span id="dbgr-num-modules">null</span>
+    <br>[Cache] objects: <span id="dbgr-cache-size">null</span>
+    hits: <span id="dbgr-cache-hits">null</span>
+    misses: <span id="dbgr-cache-misses">null</span>`;
+    let set_og = window.session.set;
+    let cache_hits = 0;
+    let cache_misses = 0;
+    window.session.set = (k, v) => {
+        let r = set_og(k, v);
+        document.getElementById("dbgr-cache-size").innerHTML =
+            Object.keys(window.session).length - 2;
+        return r;
+    };
+    let get_og = window.session.get;
+    window.session.get = (k) => {
+        let og = get_og(k);
+        if (og) {
+            cache_hits++;
+        } else {
+            cache_misses++;
+        }
+        document.getElementById("dbgr-cache-hits").innerHTML = cache_hits;
+        document.getElementById("dbgr-cache-misses").innerHTML = cache_misses;
+        return og;
+    };
+
+
     const modules_num = () => {
         if (container.hidden) return;
         document.getElementById("dbgr-num-modules").innerHTML =
@@ -110,7 +136,10 @@ let renderModule = (path, dom_id, variables = null) => {
                     'from "',
                     `from "${location.origin}`
                 );
-                mutated = mutated.replace(/#(.*?)( |.|,|\))/g, `#_${hash}_$1$2`);
+                mutated = mutated.replace(
+                    /#(.*?)( |.|,|\))/g,
+                    `#_${hash}_$1$2`
+                );
                 mutated = mutated.replace(/%%/g, "#");
 
                 mutated = mutated.replace(
@@ -185,6 +214,6 @@ const router = () => {
         // navigate("/");
     }
 };
-await dbgr();
 setup_storage();
+await dbgr();
 router();
