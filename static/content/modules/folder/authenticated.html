@@ -10,19 +10,20 @@
         </a>
 
         <script type="module">
-            import { library } from "/content/api_client.js";
-            let library_id = "##library_id##";
+            import { file, library } from "/content/api_client.js";
+            let folder_id = "##folder_id##";
             export const run = async () => {
                 let blueprint = document.getElementById("blueprint");
                 let grid = document.getElementByGId("grid");
-                let lib = (await library.get(library_id)).data;
+                let folder = (await file.get(folder_id)).data;
+                let lib = (await library.get(folder.folder.library_id)).data;
                 document.getElementById("libraryName").innerText =
                     lib.library_info.name;
-                // document.getElementById("libraryPath").innerText =
-                //     lib.library_info.path;
-                for (const entry of lib.files) {
+                document.getElementById("libraryPath").innerText =
+                    folder.folder.path;
+                for (const entry of folder.children) {
                     console.log(entry);
-                    if (entry.parent) continue;
+                    if (entry.parent != folder.folder.id) continue;
                     let item = blueprint.cloneNode(true);
                     item.style = null;
                     item.href =

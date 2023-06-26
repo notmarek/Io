@@ -58,6 +58,18 @@ function hashCode(str) {
     return hash;
 }
 
+const setup_storage = () => {
+    window.session = {
+        set: (k, v) => {
+            window.session[k] = v;
+            return v;
+        },
+        get: (k) => {
+            return window.session[k];
+        },
+    };
+};
+
 let renderModule = (path, dom_id, variables = null) => {
     document.querySelector("#dbgr-path").innerText = path;
     let hash = hashCode(path);
@@ -137,9 +149,12 @@ const router = () => {
             renderModule("user/settings.html", "#main");
         },
     };
-    const complexRoutes = {
+    const smartRoutes = {
         "/library/(?<library_id>.*?)$": ({ library_id }) => {
             renderModule("library/authenticated.html", "#main", { library_id });
+        },
+        "/folder/(?<folder_id>.*?)$": ({ folder_id }) => {
+            renderModule("folder/authenticated.html", "#main", { folder_id });
         },
     };
     if (token())
@@ -151,7 +166,7 @@ const router = () => {
     else {
         // if  \/library\/(.*?)/
         console.log(path);
-        for (const [matcher, fn] of Object.entries(complexRoutes)) {
+        for (const [matcher, fn] of Object.entries(smartRoutes)) {
             let match = path.match(matcher);
             console.log(match);
             if (match) return fn.apply(undefined, [match.groups]);
@@ -162,4 +177,5 @@ const router = () => {
     }
 };
 await dbgr();
+setup_storage();
 router();
