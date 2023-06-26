@@ -1,7 +1,7 @@
 <div class="bigaf" module>
     <h1 class="primary">The library</h1>
     <h2 class="secondary">All you can eat.</h2>
-    <div id="grid">
+    <div idg="grid">
         <a style="display: none" id="blueprint" href="#" class="item">
             <div class="item-title">-</div>
             <div class="item-size">-</div>
@@ -12,7 +12,7 @@
             import { library } from "/content/api_client.js";
             export const run = async () => {
                 let blueprint = document.getElementById("blueprint");
-                let grid = document.getElementById("grid");
+                let grid = document.getElementByGId("grid");
                 let libraries = (await library.all()).data;
                 for (const entry of libraries) {
                     console.log(entry);

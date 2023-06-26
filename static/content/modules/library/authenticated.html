@@ -1,0 +1,35 @@
+<div class="bigaf" module>
+    <h1 class="primary" id="libraryName"></h1>
+    <h2 class="secondary" id="libraryPath"></h2>
+    <div idg="grid"> 
+        <!-- idg is a global id that won't be transformed -->
+        <a style="display: none" id="blueprint" href="#" class="item">
+            <div class="item-title">-</div>
+            <div class="item-size">-</div>
+            <div class="item-time">-</div>
+        </a>
+
+        <script type="module">
+            import { library } from "/content/api_client.js";
+            let library_id = "##library_id##"; 
+            export const run = async () => {
+                let blueprint = document.getElementById("blueprint");
+                let grid = document.getElementByGId("grid");
+                let lib = (await library.get(library_id)).data;
+                document.getElementById("libraryName").innerText = lib.library_info.name;
+                document.getElementById("libraryPath").innerText = lib.library_info.path;
+                for (const entry of lib.files) {
+                    console.log(entry);
+                    if (entry.parent) continue;
+                    let item = blueprint.cloneNode(true);
+                    item.style = null;
+                    item.href = "/file/" + entry.id;
+                    item.querySelector(".item-title").innerText = entry.title;
+                    item.querySelector(".item-size").innerText = entry.size;
+                    item.querySelector(".item-time").innerText = entry.last_update;
+                    grid.appendChild(item);
+                }
+            };
+        </script>
+    </div>
+</div>

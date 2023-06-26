@@ -1,8 +1,9 @@
 use crate::{models::file::FileActions, ErrorResponse, Response, VerifiedAuthData};
 use actix_web::{error, get, web, HttpResponse};
 use entity::file::Model as File;
+use log::info;
 use sea_orm::DatabaseConnection;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams};
 
 #[derive(Deserialize, IntoParams)]
@@ -34,6 +35,7 @@ async fn file(
     VerifiedAuthData(_user): VerifiedAuthData,
 ) -> impl actix_web::Responder {
     let file = fid.get(&db).await;
+    info!("{:?}", file);
     if let Err(e) = file {
         return Err(error::ErrorNotFound(ErrorResponse {
             status: "error".to_string(),
@@ -41,10 +43,18 @@ async fn file(
         }));
     };
     let file = file.unwrap();
+    #[derive(Serialize)]
+    struct Folder {
+        folder: File,
+        children: Vec<File>,
+    }
     if file.folder {
         return Ok(HttpResponse::Ok().json(Response {
             status: "ok".to_string(),
-            data: file.get_folder_content(&db).await.unwrap(),
+            data: Folder {
+                folder: file.clone(),
+                children: file.get_folder_content(&db).await.unwrap(),
+            },
         }));
     }
     Ok(HttpResponse::Ok().json(Response {

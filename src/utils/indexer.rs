@@ -12,10 +12,12 @@ pub async fn crawl(
     depth_ttl: i32,
     db: &DatabaseConnection,
     library_id: String,
+    parent_file_id: Option<String>,
 ) -> Result<(), String> {
     debug!("Scanning {}", path.to_str().unwrap());
     let mut file = File::new(
-        path.parent().unwrap().to_str().unwrap().to_string(),
+        parent_file_id,
+        // path.parent().unwrap().to_str().unwrap().to_string(),
         library_id.clone(),
         path.to_str().unwrap().to_string(),
         path.is_dir(),
@@ -28,7 +30,14 @@ pub async fn crawl(
         for entry in dir {
             let path = entry.map_err(|e| e.to_string())?.path();
             if depth_ttl != 0 {
-                crawl(&path, depth_ttl - 1, db, library_id.clone()).await?;
+                crawl(
+                    &path,
+                    depth_ttl - 1,
+                    db,
+                    library_id.clone(),
+                    Some(file.id.clone()),
+                )
+                .await?;
             }
         }
     }
@@ -64,16 +73,19 @@ pub async fn scan_file(file_path: &Path) -> Result<File, String> {
                 ),
                 title: elements
                     .get(anitomy::ElementCategory::AnimeTitle)
-                    .map_or(None, |e| Some(e.to_string())),
+                    .map(|e| e.to_string()),
                 season: elements
                     .get(anitomy::ElementCategory::AnimeSeason)
-                    .map_or(None, |e| Some(e.to_string())),
+                    .map(|e| e.to_string()),
+
                 episode: elements
                     .get(anitomy::ElementCategory::EpisodeNumber)
-                    .map_or(None, |e| e.parse::<i32>().ok()),
+                    .map(|e| e.parse::<i32>().ok())
+                    .unwrap_or(None),
                 release_group: elements
                     .get(anitomy::ElementCategory::ReleaseGroup)
-                    .map_or(None, |e| Some(e.to_string())),
+                    .map(|e| e.to_string()),
+
                 size: Some(metadata.len() as i32),
                 ..Default::default()
             })

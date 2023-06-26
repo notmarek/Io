@@ -5,7 +5,7 @@ window.submit = submit;
 let path = window.location.pathname;
 window.addEventListener("popstate", () => {
     path = window.location.pathname;
-    render();
+    router();
 });
 window.addEventListener(`click`, (e) => {
     const origin = e.target.closest(`a`);
@@ -37,16 +37,52 @@ const dbgr = async () => {
         (container.hidden = 1), clearInterval(interval)
     );
     window.showDbgr = () => (
-        (container.hidden = false), interval = setInterval(modules_num, 300)
+        (container.hidden = false), (interval = setInterval(modules_num, 300))
     );
     document.body.appendChild(container);
 };
 
-let renderModule = (path, dom_id) => {
+/**
+ * Returns a hash code from a string
+ * @param  {String} str The string to hash.
+ * @return {Number}    A 32bit integer
+ * @see http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+ */
+function hashCode(str) {
+    let hash = 0;
+    for (let i = 0, len = str.length; i < len; i++) {
+        let chr = str.charCodeAt(i);
+        hash = (hash << 5) - hash + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+}
+
+let renderModule = (path, dom_id, variables = null) => {
     document.querySelector("#dbgr-path").innerText = path;
+    let hash = hashCode(path);
     let el = document.querySelector(dom_id);
     fetch(`/content/modules/${path}`)
         .then((r) => r.text())
+        .then((r) => {
+            // Templating like variable injection
+            if (variables) {
+                for (let [key, value] of Object.entries(variables)) {
+                    r = r.replaceAll(`##${key}##`, value);
+                }
+            }
+            return r;
+        })
+        .then((r) => {
+            r = r.replaceAll(/id="(.*?)"/g, `id="${hash}-$1"`);
+            r = r.replaceAll(/idg=/g, `id=`);
+            r = r.replaceAll(
+                /getElementById\("(.*?)"\)/g,
+                `getElementById("${hash}-$1")`
+            );
+            r = r.replaceAll("getElementByGId", "getElementById");
+            return r;
+        })
         .then((r) => (el.innerHTML = r))
         .then((_) => {
             for (let script of el.querySelectorAll("script")) {
@@ -54,6 +90,8 @@ let renderModule = (path, dom_id) => {
                     'from "',
                     `from "${location.origin}`
                 );
+                mutated = mutated.replace(/#(.*?)( |.|,|\))/g, `#${hash}-$1$2`);
+
                 mutated = mutated.replace(
                     "console.log",
                     `console.log.bind(console, "%c[Modules/${path}]", "color: #ff0069")`
@@ -69,8 +107,8 @@ let renderModule = (path, dom_id) => {
         });
 };
 
-const render = () => {
-    let obj = {
+const router = () => {
+    let simpleRoutes = {
         "/": async () => {
             if (token()) {
                 if (!(await self.get_permissions()).includes("verified")) {
@@ -95,21 +133,33 @@ const render = () => {
         "/user/register": () => {
             renderModule("user/register.html", "#main");
         },
+        "/user/settings": () => {
+            renderModule("user/settings.html", "#main");
+        },
     };
-
+    const complexRoutes = {
+        "/library/(?<library_id>.*?)$": ({ library_id }) => {
+            renderModule("library/authenticated.html", "#main", { library_id });
+        },
+    };
     if (token())
         renderModule("header/authenticated.html", "#header div.buttons");
     else renderModule("header/unauthenticated.html", "#header div.buttons");
 
-    let fn = obj[path];
+    let fn = simpleRoutes[path];
     if (fn != undefined) fn();
     else {
         // if  \/library\/(.*?)/
         console.log(path);
-        renderModule(path.slice(1), "#main");
+        for (const [matcher, fn] of Object.entries(complexRoutes)) {
+            let match = path.match(matcher);
+            console.log(match);
+            if (match) return fn.apply(undefined, [match.groups]);
+        }
+        // renderModule(path.slice(1), "#main");
         // console.log("Oh no", path)
         // navigate("/");
     }
 };
 await dbgr();
-render();
+router();

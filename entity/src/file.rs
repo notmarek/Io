@@ -11,7 +11,7 @@ use utoipa::ToSchema;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: String,
-    pub parent: String,
+    pub parent: Option<String>,
     pub library_id: String,
     pub path: String,
     pub folder: bool,
@@ -26,6 +26,14 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
+        belongs_to = "Entity",
+        from = "Column::Id",
+        to = "Column::Parent",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    SelfRef,
+    #[sea_orm(
         belongs_to = "super::library::Entity",
         from = "Column::LibraryId",
         to = "super::library::Column::Id",
@@ -38,6 +46,24 @@ pub enum Relation {
 impl Related<super::library::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Library.def()
+    }
+}
+
+impl Related<Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SelfRef.def()
+    }
+}
+
+pub struct SelfReferencingLink;
+
+impl Linked for SelfReferencingLink {
+    type FromEntity = Entity;
+
+    type ToEntity = Entity;
+
+    fn link(&self) -> Vec<RelationDef> {
+        vec![Relation::SelfRef.def()]
     }
 }
 

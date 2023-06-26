@@ -3,7 +3,7 @@ use sea_orm_migration::prelude::*;
 // CREATE TABLE public.files
 // (
 //     id VARCHAR PRIMARY KEY NOT NULL,
-//     parent VARCHAR NOT NULL,
+//     parent VARCHAR,
 //     library_id VARCHAR NOT NULL,
 //     path VARCHAR NOT NULL,
 //     folder BOOLEAN NOT NULL,
@@ -51,7 +51,15 @@ impl MigrationTrait for Migration {
                     .table(File::Table)
                     .if_not_exists()
                     .col(ColumnDef::new(File::Id).uuid().not_null().primary_key())
-                    .col(ColumnDef::new(File::Parent).string().not_null())
+                    .col(ColumnDef::new(File::Parent).uuid())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from_tbl(File::Table)
+                            .from_col(File::Parent)
+                            .to_tbl(File::Table)
+                            .to_col(File::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .col(ColumnDef::new(File::LibraryId).uuid().not_null())
                     .foreign_key(
                         ForeignKey::create()

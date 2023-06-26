@@ -12,5 +12,6 @@ export const user = {
 
 export const library = {
     all: async () => await ky.get(`/api/library/all`, { headers: { Authorization: token() } }).json(),
+    get: async (id) => await ky.get(`/api/library/${id}`, { headers: { Authorization: token() } }).json(),
     // create: async () => 
 }

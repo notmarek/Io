@@ -44,8 +44,9 @@ export let token = () => {
 export let submit = {
     login: async (event) => {
         event.preventDefault();
-        let uname = document.getElementById("username").value;
-        let passwd = document.getElementById("password").value;
+        let form = event.target;
+        let uname = form.querySelector("input[name='username']").value;
+        let passwd = form.querySelector("input[name='password']").value;
         let res = await user.login(uname, passwd);
         if (res.status !== "error") {
             localStorage.setItem("token", res.token);
@@ -61,8 +62,9 @@ export let submit = {
     },
     register: async (event) => {
         event.preventDefault();
-        let uname = document.getElementById("username").value;
-        let passwd = document.getElementById("password").value;
+        let form = event.target;
+        let uname = form.querySelector("input[name='username']").value;
+        let passwd = form.querySelector("input[name='password']").value;
         let res = await user.register(uname, passwd);
         if (res.status !== "error") {
             localStorage.setItem("token", res.token);
