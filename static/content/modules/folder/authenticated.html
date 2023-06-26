@@ -1,10 +1,15 @@
 <div class="bigaf" module>
-    <h1 class="primary" id="libraryName"></h1>
+    <a class="primary" id="libraryName"><h2></h2></a>
     <h2 class="secondary" id="libraryPath"></h2>
     <div idg="grid">
         <!-- idg is a global id that won't be transformed -->
         <a style="display: none" id="blueprint" href="#" class="item">
-            <div class="item-title">-</div>
+            
+            <div class="item-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="1.5em" height="1.5em">
+                </svg>
+                <span>-</span>
+            </div>
             <div class="item-size">-</div>
             <div class="item-time">-</div>
         </a>
@@ -12,23 +17,51 @@
         <script type="module">
             import { file, library } from "/content/api_client.js";
             let folder_id = "##folder_id##";
+            const available_icons = {
+                "png": "Image.svg",
+                "jpg": "Image.svg",
+                "jpeg": "Image.svg",
+                "gif": "Image.svg",
+                "svg": "Image.svg",
+                "mp4": "Video.svg",
+                "mkv": "Video.svg",
+                "avi": "Video.svg",
+                "aac": "AAC.svg",
+                "mp3": "MP3.svg",
+                "ogg": "OGG.svg",
+                "wav": "WAV.svg",
+                "zip": "ZIP.svg",
+                "rar": "RAR.svg",
+                "tar": "TAR.svg",
+                "mobi": "MOBI.svg",
+                "epub": "EPUB.svg",
+                "cbz": "CBZ.svg",
+                "cbr": "CBR.svg",
+            }
             export const run = async () => {
                 let blueprint = document.getElementById("blueprint");
                 let grid = document.getElementByGId("grid");
                 let folder = (await file.get(folder_id)).data;
                 let lib = (await library.get(folder.folder.library_id)).data;
-                document.getElementById("libraryName").innerText =
+                document.querySelector("#libraryName h2").innerText =
                     lib.library_info.name;
+                document.getElementById("libraryName").href = "/library/" + lib.library_info.id;
                 document.getElementById("libraryPath").innerText =
                     folder.folder.path;
                 for (const entry of folder.children) {
                     console.log(entry);
                     if (entry.parent != folder.folder.id) continue;
+
+                    
+                    let icon = entry.folder ? "Folder.svg" : available_icons[entry.path.split(".").pop().toLowerCase()] || "File.svg";
+
                     let item = blueprint.cloneNode(true);
                     item.style = null;
                     item.href =
                         (entry.folder ? "/folder/" : "/file/") + entry.id;
-                    item.querySelector(".item-title").innerText = entry.title;
+                    // item.querySelector(".item-icon").src = "/content/imgs/" + icon;
+                    item.querySelector("svg").innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
+                    item.querySelector(".item-title>span").innerText = entry.title;
                     item.querySelector(".item-size").innerText = entry.size;
                     item.querySelector(".item-time").innerText =
                         entry.last_update;

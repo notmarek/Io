@@ -81,7 +81,7 @@ let get_module = async (path) => {
 
 let renderModule = (path, dom_id, variables = null) => {
     document.querySelector("#dbgr-path").innerText = path;
-    let hash = hashCode(path);
+    let hash = hashCode(path).toString(16).replace("-", "_");
     let el = document.querySelector(dom_id);
     get_module(path)
         .then((r) => {
@@ -94,11 +94,11 @@ let renderModule = (path, dom_id, variables = null) => {
             return r;
         })
         .then((r) => {
-            r = r.replaceAll(/id="(.*?)"/g, `id="${hash}-$1"`);
+            r = r.replaceAll(/id="(.*?)"/g, `id="_${hash}_$1"`);
             r = r.replaceAll(/idg=/g, `id=`);
             r = r.replaceAll(
                 /getElementById\("(.*?)"\)/g,
-                `getElementById("${hash}-$1")`
+                `getElementById("_${hash}_$1")`
             );
             r = r.replaceAll("getElementByGId", "getElementById");
             return r;
@@ -110,7 +110,8 @@ let renderModule = (path, dom_id, variables = null) => {
                     'from "',
                     `from "${location.origin}`
                 );
-                mutated = mutated.replace(/#(.*?)( |.|,|\))/g, `#${hash}-$1$2`);
+                mutated = mutated.replace(/#(.*?)( |.|,|\))/g, `#_${hash}_$1$2`);
+                mutated = mutated.replace(/%%/g, "#");
 
                 mutated = mutated.replace(
                     "console.log",
