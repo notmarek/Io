@@ -53,6 +53,11 @@ export const library = {
                 headers: { Authorization: token() },
             })
             .json(),
+    create: async (name, path, depth) => await ky.put(`/api/library`, {
+	    headers: { Authorization: token() },
+	    throwHttpErrors: false,
+	    json: { name, path, depth }
+    }).json(),
 };
 
 export const file = {
