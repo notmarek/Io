@@ -127,12 +127,16 @@ let renderModule = (path, dom_id, variables = null) => {
                 `getElementById("_${hash}_$1")`
             );
             r = r.replaceAll("getElementByGId", "getElementById");
+            self.get_permissions().then((p) => { 
+                if (!p.includes("administrator")) 
+                    r = r.replaceAll("%%administrator%%", "hidden"); 
+            });
             return r;
         })
         .then((r) => (el.innerHTML = r))
         .then((_) => {
             for (let script of el.querySelectorAll("script")) {
-                let mutated = script.innerText.replace(
+                let mutated = script.innerText.replaceAll(
                     'from "',
                     `from "${location.origin}`
                 );

@@ -3,7 +3,11 @@
     <h2 class="secondary">All you can eat.</h2>
     <div idg="grid">
         <a style="display: none" id="blueprint" href="#" class="item">
-            <div class="item-title">-</div>
+            <div class="item-title">
+                <span %%administrator%%>Scan library </span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="1.5em" height="1.5em"><use fill="currentColor" href="/content/imgs/Folder.svg#img"></use></svg>
+                <span id="inner">-</span>
+            </div>
             <div class="item-size">-</div>
             <div class="item-time">-</div>
         </a>
@@ -19,7 +23,8 @@
                     let item = blueprint.cloneNode(true);
                     item.style = null;
                     item.href = "/library/" + entry.id;
-                    item.querySelector(".item-title").innerText = entry.name;
+                    item.querySelector(".item-title>span#inner").innerText = entry.name;
+                    item.querySelector(".item-time").innerText = new Date(entry.last_scan);
                     grid.appendChild(item);
                 }
             };

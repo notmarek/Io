@@ -4,12 +4,21 @@
     <div idg="grid">
         <!-- idg is a global id that won't be transformed -->
         <a style="display: none" id="blueprint" href="#" class="item">
-            <div class="item-title">-</div>
+            <div class="item-title">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 50 50"
+                    width="1.5em"
+                    height="1.5em"
+                ></svg>
+                <span>-</span>
+            </div>
             <div class="item-size">-</div>
             <div class="item-time">-</div>
         </a>
 
         <script type="module">
+            import { available_icons } from "/content/consts.js";
             import { library } from "/content/api_client.js";
             let library_id = "##library_id##";
             export const run = async () => {
@@ -20,17 +29,27 @@
                     lib.library_info.name;
                 // document.getElementById("libraryPath").innerText =
                 //     lib.library_info.path;
+                let root_file = lib.files.find((f) => !f.parent);
                 for (const entry of lib.files) {
                     console.log(entry);
-                    if (entry.parent) continue;
+                    if (entry.parent !== root_file.id) continue;
+                    let icon = entry.folder
+                        ? "Folder.svg"
+                        : available_icons[
+                              entry.path.split(".").pop().toLowerCase()
+                          ] || "File.svg";
                     let item = blueprint.cloneNode(true);
                     item.style = null;
                     item.href =
                         (entry.folder ? "/folder/" : "/file/") + entry.id;
-                    item.querySelector(".item-title").innerText = entry.title;
+                    item.querySelector(
+                        "svg"
+                    ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
+                    item.querySelector(".item-title>span").innerText =
+                        entry.title;
                     item.querySelector(".item-size").innerText = entry.size;
                     item.querySelector(".item-time").innerText =
-                        entry.last_update;
+                        new Date(entry.last_update);
                     grid.appendChild(item);
                 }
             };

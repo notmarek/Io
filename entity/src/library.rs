@@ -12,7 +12,7 @@ pub struct Model {
     pub name: String,
     pub path: String,
     pub depth: i32,
-    pub last_scan: String,
+    pub last_scan: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

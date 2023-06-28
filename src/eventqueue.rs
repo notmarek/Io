@@ -28,7 +28,7 @@ impl RawEvent {
             Self::AnilistRefreshEvent { anilist_id: a } => info!("Anilist Refresh: {}", a),
             Self::ScanLibraryEvent { library } => {
                 if let Some(db) = db {
-                    library.crawl(&db).await;
+                    library.scan(&db).await;
                     info!("we are here lol");
                 } else {
                     info!("No pool provided. Library scanning unavailable")

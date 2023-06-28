@@ -1,9 +1,10 @@
 use crate::utils::indexer::crawl;
 use async_trait::async_trait;
+use entity::library::ActiveModel;
 use entity::prelude::{File, Library};
 use entity::{file, library};
-use sea_orm::prelude::*;
 use sea_orm::DatabaseConnection;
+use sea_orm::{prelude::*, ActiveValue};
 use std::path::Path;
 use uuid::Uuid;
 
@@ -20,7 +21,7 @@ pub trait LibraryActions {
     async fn get_files(&self, db: &DatabaseConnection) -> Result<Vec<file::Model>, String>;
     async fn get_all(db: &DatabaseConnection) -> Result<Vec<library::Model>, String>;
     async fn delete(lib_id: String, db: &DatabaseConnection) -> Result<u64, String>;
-    async fn crawl(&self, db: &DatabaseConnection);
+    async fn scan(&self, db: &DatabaseConnection);
 }
 
 #[async_trait]
@@ -43,7 +44,7 @@ impl LibraryActions for library::Model {
                     name,
                     path,
                     depth,
-                    last_scan: 0.to_string(),
+                    last_scan: chrono::NaiveDateTime::MIN,
                 }
                 .into();
                 active.insert(db).await.map_err(|e| e.to_string())
@@ -78,7 +79,11 @@ impl LibraryActions for library::Model {
         }
     }
 
-    async fn crawl(&self, db: &DatabaseConnection) {
+    async fn scan(&self, db: &DatabaseConnection) {
+        log::info!("Scanning library: {}", self.name);
+        let mut active: ActiveModel = self.clone().into();
+        active.last_scan = ActiveValue::set(chrono::Utc::now().naive_local());
+        active.update(db).await.unwrap();
         crawl(Path::new(&self.path), self.depth, db, self.id.clone(), None)
             .await
             .unwrap()

@@ -143,3 +143,7 @@ div.bigaf {
     text-decoration: underline 1px white;
     /* transition: transform .3s cubic-bezier(.86,0,.07,1); */
 }
+
+[hidden] {
+    display: none;
+}
