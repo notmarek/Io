@@ -47,7 +47,12 @@ export const library = {
                 })
                 .json()
         ),
-    // create: async () =>
+    scan: async (id) =>
+        await ky
+            .post(`/api/library/${id}/scan`, {
+                headers: { Authorization: token() },
+            })
+            .json(),
 };
 
 export const file = {

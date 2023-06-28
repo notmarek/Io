@@ -52,7 +52,6 @@ const dbgr = async () => {
         return og;
     };
 
-
     const modules_num = () => {
         if (container.hidden) return;
         document.getElementById("dbgr-num-modules").innerHTML =
@@ -105,11 +104,12 @@ let get_module = async (path) => {
     );
 };
 
-let renderModule = (path, dom_id, variables = null) => {
-    document.querySelector("#dbgr-path").innerText = path;
-    let hash = hashCode(path).toString(16).replace("-", "_");
+let renderModule = (module_path, dom_id, variables = null) => {
+    module_path = module_path + ".html";
+    document.querySelector("#dbgr-path").innerText = module_path;
+    let hash = hashCode(module_path).toString(16).replace("-", "_");
     let el = document.querySelector(dom_id);
-    get_module(path)
+    get_module(module_path)
         .then((r) => {
             // Templating like variable injection
             if (variables) {
@@ -127,9 +127,9 @@ let renderModule = (path, dom_id, variables = null) => {
                 `getElementById("_${hash}_$1")`
             );
             r = r.replaceAll("getElementByGId", "getElementById");
-            self.get_permissions().then((p) => { 
-                if (!p.includes("administrator")) 
-                    r = r.replaceAll("%%administrator%%", "hidden"); 
+            self.get_permissions().then((p) => {
+                if (!p.includes("administrator"))
+                    r = r.replaceAll("%%administrator%%", "hidden");
             });
             return r;
         })
@@ -148,15 +148,15 @@ let renderModule = (path, dom_id, variables = null) => {
 
                 mutated = mutated.replace(
                     "console.log",
-                    `console.log.bind(console, "%c[Modules/${path}]", "color: #ff0069")`
+                    `console.log.bind(console, "%c[Modules/${module_path}]", "color: #ff0069")`
                 );
                 const blob = new Blob([mutated], {
                     type: "application/javascript",
                 });
                 let uri = URL.createObjectURL(blob);
-                let module = import(uri);
+                let js = import(uri);
 
-                module.then((e) => e.run());
+                js.then((e) => e.run());
             }
         });
 };
@@ -166,42 +166,49 @@ const router = () => {
         "/": async () => {
             if (token()) {
                 if (!(await self.get_permissions()).includes("verified")) {
-                    renderModule("home/unverified.html", "#main");
+                    renderModule("home/unverified", "#main");
                 } else {
-                    renderModule("home/authenticated.html", "#main");
+                    renderModule("home/authenticated", "#main");
                 }
             } else {
-                renderModule("home/unauthenticated.html", "#main");
+                renderModule("home/unauthenticated", "#main");
             }
         },
         "/help": () => {
             document.body.innerHTML = "go fuck yourself";
         },
         "/user/login": () => {
-            renderModule("user/login.html", "#main");
+            renderModule("user/login", "#main");
         },
         "/user/logout": () => {
             localStorage.clear();
             navigate("/");
         },
         "/user/register": () => {
-            renderModule("user/register.html", "#main");
+            renderModule("user/register", "#main");
         },
         "/user/settings": () => {
-            renderModule("user/settings.html", "#main");
+            renderModule("user/settings", "#main");
         },
+        "/admin/library": () => {
+            // TODO: don't let everyone in here :)
+            renderModule("admin/library/manage", "#main");
+        },
+        "/admin/library/create": () => {
+            // TODO: don't let everyone in here :)
+            renderModule("admin/library/create", "#main")
+        }
     };
     const smartRoutes = {
         "/library/(?<library_id>.*?)$": ({ library_id }) => {
-            renderModule("library/authenticated.html", "#main", { library_id });
+            renderModule("library/authenticated", "#main", { library_id });
         },
         "/folder/(?<folder_id>.*?)$": ({ folder_id }) => {
-            renderModule("folder/authenticated.html", "#main", { folder_id });
+            renderModule("folder/authenticated", "#main", { folder_id });
         },
     };
-    if (token())
-        renderModule("header/authenticated.html", "#header div.buttons");
-    else renderModule("header/unauthenticated.html", "#header div.buttons");
+    if (token()) renderModule("header/authenticated", "#header div.buttons");
+    else renderModule("header/unauthenticated", "#header div.buttons");
 
     let fn = simpleRoutes[path];
     if (fn != undefined) fn();
