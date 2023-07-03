@@ -29,7 +29,8 @@ const dbgr = async () => {
     rendered: <span id="dbgr-num-modules">null</span>
     <br>[Cache] objects: <span id="dbgr-cache-size">null</span>
     hits: <span id="dbgr-cache-hits">null</span>
-    misses: <span id="dbgr-cache-misses">null</span>`;
+    misses: <span id="dbgr-cache-misses">null</span>
+    invalid: <span id="dbgr-cache-inv">0</span>`;
     let set_og = window.session.set;
     let cache_hits = 0;
     let cache_misses = 0;
@@ -37,8 +38,15 @@ const dbgr = async () => {
         let r = set_og(k, v);
         document.getElementById("dbgr-cache-size").innerHTML =
             Object.keys(window.session).length - 2;
+		document.getElementById("dbgr-cache-inv").innerHTML = window.session.invalid.length;
         return r;
     };
+    let invalidate_og = window.session.invalidate;
+	window.session.invalidate = (k) => {
+		let r = invalidate_og(k);
+		document.getElementById("dbgr-cache-inv").innerHTML = window.session.invalid.length;
+		return r;
+	}
     let get_og = window.session.get;
     window.session.get = (k) => {
         let og = get_og(k);
@@ -85,13 +93,22 @@ function hashCode(str) {
 
 const setup_storage = () => {
     window.session = {
+	invalid: [],
         set: (k, v) => {
+	    if (window.session.invalid.includes(k))
+		window.session.invalid.splice(window.session.invalid.indexOf(k), 1);
             window.session[k] = v;
             return v;
         },
         get: (k) => {
+		if (window.session.invalid.includes(k))
+			return undefined;
             return window.session[k];
         },
+	invalidate: (k) => {
+		window.session.invalid.push(k);
+		return true;
+	}
     };
 };
 

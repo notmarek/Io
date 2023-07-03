@@ -29,7 +29,6 @@ impl RawEvent {
             Self::ScanLibraryEvent { library } => {
                 if let Some(db) = db {
                     library.scan(&db).await;
-                    info!("we are here lol");
                 } else {
                     info!("No pool provided. Library scanning unavailable")
                 }
@@ -126,9 +125,16 @@ impl QueueTrait for Queue {
     }
 
     async fn execute_current_job(&mut self) {
+        let start_time = chrono::Utc::now();
         self.current_job.event.execute(self.pool.clone()).await;
+        let end_time = chrono::Utc::now();
         self.current_job.finished = true;
-        info!("Job finished: {}", self.current_job.event);
+        let diff = end_time - start_time;
+        info!(
+            "Job finished: {} Elapsed: {}ms",
+            self.current_job.event,
+            diff.num_milliseconds()
+        );
     }
 
     async fn update(&mut self) {

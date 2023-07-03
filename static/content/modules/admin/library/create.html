@@ -20,7 +20,8 @@
 	                    const depth = Number(document.querySelector("#depth").value);
 			    let res = await library.create(name, path, depth);
 			    console.log(res);
-			    document.getElementByGID("error").innerText = res.status();
+			    //document.getElementByGId("error").innerText = res.status();
+			    window.session.invalidate("lib-all");
 			    return false;
 		    };
 	    }

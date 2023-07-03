@@ -20,8 +20,8 @@
                 </svg>
                 <span id="inner">-</span>
             </div>
-            <div class="item-time">-</div>
             <div class="scan" style="cursor: pointer">Scan this bitch</div>
+            <div class="delete" style="cursor: pointer">Delete this bitch</div>
         </div>
 
         <script type="module">
@@ -35,14 +35,21 @@
                     let item = blueprint.cloneNode(true);
                     item.querySelector(".item-title>span#inner").innerText =
                         entry.name;
-                    item.querySelector(".item-time").innerText = new Date(
+                    item.querySelector(".scan").title = new Date(
                         entry.last_scan
                     );
                     item.querySelector(".scan").onclick = async (e) => {
                         let res = await library.scan(entry.id);
                         e.target.innerText = res.data;
                     };
-                    item.style = null;
+		    item.querySelector(".delete").onclick = async (e) => {
+		    	if (!confirm("Are you sure you want to delete the library?")) 
+				return;
+			let res = await library.delete(entry.id);
+			console.log(res);
+			item.hidden = true;			
+		    };
+		    item.style = null;
                     grid.appendChild(item);
                 }
             };

@@ -58,6 +58,9 @@ export const library = {
 	    throwHttpErrors: false,
 	    json: { name, path, depth }
     }).json(),
+    delete: async (id) => await ky.delete(`/api/library/${id}`, { headers: { Authorization: token() },
+		throwHttpErrors: false }).json(),
+
 };
 
 export const file = {
