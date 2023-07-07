@@ -1,7 +1,7 @@
 // TODO: functions to change theme color etc
 export const ThemeManager = {
 	styleEl: null,
-	style: {
+	_style: {
 		accentColor: "#ff0069",
 		backgroundColor: "#121212",
 		primaryTextColor: "#ffffff",
@@ -9,9 +9,40 @@ export const ThemeManager = {
 		primaryLinkColor: "#ffffff",
 		secondaryLinkColor: "#5c5c5c",
 	},
+	get style() { return this._style },
+	set style(val) { for (const x in val) localStorage.setItem("theme." + x, val[x]);return this._style = val; },
+	serializeMaps: {
+		v1: { accentColor: "a", backgroundColor: "b", primaryTextColor: "pt", secondaryTextColor: "st", primaryLinkColor: "pl", secondaryLinkColor: "sl" },
+	},
 	_css: null,
 	get css() { return this._css },
 	set css(val) { this._css = val; this.styleEl.innerHTML = val; },
+	export(version) {
+		let versions = {
+			v1: () => {
+				let serStyle = {};
+				for (let key in this.serializeMaps.v1)
+					serStyle[this.serializeMaps.v1[key]] = this.style[key];
+				return btoa(JSON.stringify({ v: 1, ...serStyle }).replaceAll(/{|}|\"/g, "")).replaceAll(/=/g, "");;
+			}
+		};
+		return versions[version]();
+	},
+	import(code) {
+		let versions = {
+			v1: (code) => {
+				code = `{ "${atob(code).replaceAll(/(:|,)/g, '"$1"')}" }`;
+				const serStyle = JSON.parse(code);
+				let deserStyle = {};
+				for (let key in this.serializeMaps.v1)
+					deserStyle[key] = serStyle[this.serializeMaps.v1[key]];
+				this.style = deserStyle;
+				this.compile();
+				return this.style;
+			}
+		}
+		return versions.v1(code);
+	},
 	init(el = null) {
 		for (let prop in this.style) 
 			this.style[prop] = localStorage.getItem("theme." + prop) || this.style[prop];
@@ -26,6 +57,7 @@ export const ThemeManager = {
 			css += `${prop}: ${val};\n`;
 		}
 		this.css = `:root { ${css} }`;
+                document.dispatchEvent(new Event("themeReload")); 
 		return css;
 	},
 	set(prop, val) {

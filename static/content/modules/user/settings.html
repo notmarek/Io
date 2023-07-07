@@ -4,15 +4,36 @@
     </h1>
     <form id="settings">
     </form>
+    <pre>
+    </pre>
+    <style>
+	#settings {
+		text-align: right;
+		align-items: center;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+    </style>
     <script>
 	    export const run = () => {
 		    let settings = document.querySelector("#settings");
 		    for (const prop in window.ThemeManager.style) {
+			    let label = prop.replaceAll(/([A-Z])/g, (m) => " " + m.toLowerCase());
+			    let labelEl = document.createElement("label");
+			    labelEl.for = prop;
+			    labelEl.innerText = label;
 			    let el = document.createElement("input");
 			    el.type = "color";
+			    el.name = prop;
 			    el.value = window.ThemeManager.style[prop];
-			    el.onchange = () => window.ThemeManager.set(prop, el.value);
+			    el.onchange = () => {
+				    window.ThemeManager.set(prop, el.value);
+				    document.querySelector("pre").innerText = window.ThemeManager.export("v1");
+			    }
+			    document.addEventListener("themeReload", (_) => el.value = window.ThemeManager.style[prop]);
+			    settings.appendChild(labelEl);
 			    settings.appendChild(el);
+			    document.querySelector("pre").innerText = window.ThemeManager.export("v1");
 		    }
 	    }
     </script>

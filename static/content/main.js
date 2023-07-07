@@ -145,6 +145,11 @@ let renderModule = (module_path, dom_id, variables = null) => {
                 `getElementById("_${hash}_$1")`
             );
             r = r.replaceAll("getElementByGId", "getElementById");
+	    r = r.replace(
+                /#(.*?)( |.|,|\))/g,
+                `#_${hash}_$1$2`
+            );
+            r = r.replace(/%%/g, "#");
             self.get_permissions().then((p) => {
                 if (!p.includes("administrator"))
                     r = r.replaceAll("%%administrator%%", "hidden");
@@ -158,12 +163,6 @@ let renderModule = (module_path, dom_id, variables = null) => {
                     'from "',
                     `from "${location.origin}`
                 );
-                mutated = mutated.replace(
-                    /#(.*?)( |.|,|\))/g,
-                    `#_${hash}_$1$2`
-                );
-                mutated = mutated.replace(/%%/g, "#");
-
                 mutated = mutated.replace(
                     "console.log",
                     `console.log.bind(console, "%c[Modules/${module_path}]", "color: #ff0069")`
