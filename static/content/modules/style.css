@@ -3,13 +3,13 @@
 body {
     font-family: "Roboto Mono", monospace;
     margin: 0;
-    background-color: #121212;
-    color: white;
+    background-color: var(--background-color);
+    color: var(--primary-text-color);
 }
 
 #header {
     display: flex;
-    background-color: #ff0069;
+    background-color: var(--accent-color);
     overflow: hidden;
     padding: 0 20px;
     align-items: center;
@@ -37,7 +37,7 @@ body {
 }
 
 .buttons a:hover {
-    background-color: #121212;
+    background-color: var(--background-color);
 }
 
 .btn {
@@ -45,22 +45,22 @@ body {
     min-width: 90px;
     margin: 6px;
     font-size: 1.2em;
-    color: white;
+    color: var(--primary-text-color);
     border-radius: 3px;
     /* border: solid 1.5px ; */
 }
 a {
     text-decoration: none;
-    color: white;
+    color: var(--primary-text-color);
 }
 
 .btn.primary {
-    background-color: #ff0069;
-    border: solid 2px #ff0069;
+    background-color: var(--accent-color);
+    border: solid 2px var(--accent-color);
 }
 .btn.secondary {
-    border: solid 2px #ff0069;
-    color: white;
+    border: solid 2px var(--accent-color);
+    color: var(--primary-text-color);
 }
 .btn:hover {
     cursor: pointer;
@@ -74,7 +74,7 @@ input {
     padding: 10px;
     margin: 10px;
     min-width: 90px;
-    border: solid 2px white;
+    border: solid 2px var(--primary-text-color);
     border-radius: 3px;
 }
 
@@ -84,13 +84,13 @@ form {
 }
 
 .secondary {
-    color: #a7a7a7;
+    color: var(--secondary-text-color);
 }
 a.secondary {
-    color: #5c5c5c;
+    color: var(--secondary-link-color);
 }
 .btn.secondary:hover {
-    background-color: #ff0069;
+    background-color: var(--accent-color);
     transition-duration: 0.5s;
 }
 
@@ -118,7 +118,8 @@ div.bigaf {
     grid-template-columns: 1.5fr 0.75fr 0.75fr;
     text-align: center;
 
-    /* border: solid 2px #ff0069; */
+    /* border: solid 2px var(--accent-color)
+     ; */
     width: 100%;
     padding: 10px;
     margin: 0px 0px;
@@ -135,12 +136,12 @@ div.bigaf {
 }
 
 .item:hover {
-    background-color: #ff0069;
+    background-color: var(--accent-color);
     /* transition-duration: 0.5s; */
 }
 
 .item:hover div.item-title {
-    text-decoration: underline 1px white;
+    text-decoration: underline 1px var(--primary-text-color);
     /* transition: transform .3s cubic-bezier(.86,0,.07,1); */
 }
 

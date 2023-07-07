@@ -2,21 +2,18 @@
     <h1 class="primary">
         Settings
     </h1>
-    <form onsubmit="window.submit.register(event)">
-        <input id="color" type="color" value="#ff0069"/>
-        <input id="password" name="password" type="password" placeholder="Password"/> 
-        <input type="submit" class="btn primary" value="Register">
+    <form id="settings">
     </form>
     <script>
-	    export async const run = () => {
-		    import { setColor } from "
-		    document.querySelector("#color").onchange = (event) => {
-			    
-			    localStorage.setItem("color", event.target.value);
-		    };
-			    
+	    export const run = () => {
+		    let settings = document.querySelector("#settings");
+		    for (const prop in window.ThemeManager.style) {
+			    let el = document.createElement("input");
+			    el.type = "color";
+			    el.value = window.ThemeManager.style[prop];
+			    el.onchange = () => window.ThemeManager.set(prop, el.value);
+			    settings.appendChild(el);
+		    }
 	    }
     </script>
-    <p idg="error"></p>
-    <a href="/user/login" class="secondary">Already have an account?</a>
 </div>

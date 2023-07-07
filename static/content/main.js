@@ -1,5 +1,6 @@
 import { submit, navigate, token, self } from "./api.js";
 import { get_info } from "./api_client.js";
+import { ThemeManager } from "./theme.js";
 console.log(await get_info());
 window.submit = submit;
 let path = window.location.pathname;
@@ -242,6 +243,13 @@ const router = () => {
         // navigate("/");
     }
 };
+
+const setup_theme_manager = () => {
+	window.ThemeManager = ThemeManager;
+	window.ThemeManager.init();
+};
+
+setup_theme_manager();
 setup_storage();
 await dbgr();
 router();
