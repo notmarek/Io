@@ -8,10 +8,16 @@
     </pre>
     <style>
 	#settings {
-		text-align: right;
+		text-align: center;
 		align-items: center;
 		display: grid;
 		grid-template-columns: 1fr 1fr;
+	}
+	label {
+		text-shadow: 1px 1px 2px black;
+		padding: 1em;
+		margin: 0.25em;
+		color: white;
 	}
     </style>
     <script>
@@ -23,8 +29,11 @@
 			    labelEl.for = prop;
 			    labelEl.innerText = label;
 			    let el = document.createElement("input");
+			    el.hidden = true;
 			    el.type = "color";
 			    el.name = prop;
+			    labelEl.onclick = () => el.click();
+			    labelEl.style.backgroundColor = `var(--${prop.replaceAll(/[A-Z]/g, (m) => "-" + m.toLowerCase())})`;
 			    el.value = window.ThemeManager.style[prop];
 			    el.onchange = () => {
 				    window.ThemeManager.set(prop, el.value);
