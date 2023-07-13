@@ -29,7 +29,7 @@
                     lib.library_info.name;
                 // document.getElementById("libraryPath").innerText =
                 //     lib.library_info.path;
-                let root_file = lib.files.find((f) => !f.parent);
+                let root_file = lib.root_file;
                 for (const entry of lib.files) {
                     console.log(entry);
                     if (entry.parent !== root_file.id) continue;

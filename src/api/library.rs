@@ -1,6 +1,6 @@
 use crate::{
     eventqueue::{QueueTrait, RawEvent},
-    models::{library::LibraryActions, user::UserActions},
+    models::{file::FileActions, library::LibraryActions, user::UserActions},
     ArcQueue, ErrorResponse, Response, VerifiedAuthData,
 };
 use actix_web::{delete, get, post, put};
@@ -71,6 +71,7 @@ async fn library(
     #[derive(Serialize)]
     struct Bruh {
         library_info: Library,
+        root_file: File,
         files: Vec<File>,
     }
     let library = {
@@ -79,6 +80,7 @@ async fn library(
                 status: "ok".to_string(),
                 data: Bruh {
                     library_info: u.clone(),
+                    root_file: File::get_from_path(u.path.clone(), &db).await.unwrap(),
                     files: u.get_files(&db).await.unwrap(),
                 },
             },

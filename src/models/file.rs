@@ -19,6 +19,7 @@ pub trait FileActions {
         db: &DatabaseConnection,
     ) -> Result<file::Model, String>;
     async fn get(fid: String, db: &DatabaseConnection) -> Result<file::Model, String>;
+    async fn get_from_path(path: String, db: &DatabaseConnection) -> Result<file::Model, String>;
     async fn scan(&mut self, db: &DatabaseConnection);
     async fn get_folder_content(&self, db: &DatabaseConnection)
         -> Result<Vec<file::Model>, String>;
@@ -61,6 +62,18 @@ impl FileActions for file::Model {
         match File::find_by_id(fid).one(db).await {
             Ok(Some(f)) => Ok(f),
             Ok(None) => Err("No such file could be found.".to_string()),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    async fn get_from_path(path: String, db: &DatabaseConnection) -> Result<file::Model, String> {
+        match File::find()
+            .filter(file::Column::Path.eq(&path))
+            .one(db)
+            .await
+        {
+            Ok(Some(f)) => Ok(f),
+            Ok(None) => Err("No entry in db".to_string()),
             Err(e) => Err(e.to_string()),
         }
     }
