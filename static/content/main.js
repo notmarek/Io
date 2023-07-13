@@ -82,7 +82,7 @@ export let renderModule = (module_path, dom_id, variables = null) => {
             }
             return r;
         })
-        .then((r) => {
+        .then(async (r) => {
             r = r.replaceAll(/id="(.*?)"/g, `id="_${hash}_$1"`);
             r = r.replaceAll(/idg=/g, `id=`);
             r = r.replaceAll(
@@ -90,15 +90,17 @@ export let renderModule = (module_path, dom_id, variables = null) => {
                 `getElementById("_${hash}_$1")`
             );
             r = r.replaceAll("getElementByGId", "getElementById");
-	    r = r.replace(
+	    	r = r.replace(
                 /#(.*?)( |.|,|\))/g,
                 `#_${hash}_$1$2`
             );
+            let p = await self.get_permissions();
+			
+            if (!p.match(/administrator|_users|_library/)) {
+                r = r.replaceAll("%%administrator%%", "hidden");
+			}
+            
             r = r.replace(/%%/g, "#");
-            self.get_permissions().then((p) => {
-                if (!p.includes("administrator"))
-                    r = r.replaceAll("%%administrator%%", "hidden");
-            });
             return r;
         })
         .then((r) => (el.innerHTML = r))
@@ -152,14 +154,20 @@ const router = () => {
         "/user/settings": () => {
             renderModule("user/settings", "#main");
         },
+		"/admin": () => {
+			renderModule("admin/index", "#main");
+		},
         "/admin/library": () => {
             // TODO: don't let everyone in here :)
             renderModule("admin/library/manage", "#main");
         },
         "/admin/library/create": () => {
             // TODO: don't let everyone in here :)
-            renderModule("admin/library/create", "#main")
-        }
+            renderModule("admin/library/create", "#main");
+        },
+		"/admin/user": () => {
+			renderModule("admin/user/all", "#main");
+		},
     };
     const smartRoutes = {
         "/library/(?<library_id>.*?)$": ({ library_id }) => {
@@ -168,6 +176,9 @@ const router = () => {
         "/folder/(?<folder_id>.*?)$": ({ folder_id }) => {
             renderModule("folder/authenticated", "#main", { folder_id });
         },
+		"/admin/user/(?<user_id>.*?)$": ({ user_id }) => {
+			renderModule("admin/user/edit", "#main", { user_id });
+		},
     };
     if (token()) renderModule("header/authenticated", "#header div.buttons");
     else renderModule("header/unauthenticated", "#header div.buttons");

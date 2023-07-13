@@ -1,0 +1,39 @@
+<div class="bigaf" module>
+    <h1 class="primary">
+		Editing <span id="username"></span>
+    </h1>
+    <form>
+        <input id="username" name="username" type="text" placeholder="Username"/>
+        <input id="password" name="password" type="text" placeholder="Password"/> 
+		<input id="permissions" name="permissions" type="text", placeholder="Permissions" />
+        <input type="submit" class="btn primary" value="Save">
+    </form>
+    <p idg="error"></p>
+    <a href="/user/register" class="secondary">Don't have an account?</a>
+	<script module>
+		import { user } from "/content/api_client.js";
+		import { navigate } from "/content/api.js";
+		let user_id = "##user_id##";
+		export const run = async () => {
+			let cuser = await user.info(user_id);
+			document.querySelector("#username").innerText = cuser.username;
+			document.querySelector("#permissions").value = cuser.permissions;
+			document.querySelector("form").onsubmit = async (e) => {
+				e.preventDefault();
+				let target = e.target;
+				let data = { 
+				  username: target.querySelector("#username").value || undefined,
+				  password: target.querySelector("#password").value || undefined,
+				  permissions: target.querySelector("#permissions").value,
+				};
+				let res = await user.edit(user_id, data);
+				if (res.status === "error")
+					document.getElementByGId("error").innerText = res.error;
+				else 
+					navigate("/admin/user");
+				return false;
+			}
+		};
+
+	</script>
+</div>

@@ -1,0 +1,26 @@
+<div class="bigaf" module>
+    <h1 class="primary">
+    	Admin panel 
+    </h1>
+    <h2 class="secondary" id="special">
+		You are special if you can see this :)
+    </h2>
+    <a id="user" href="/admin/user" class="btn primary">
+		Users
+    </a>
+	<a id="lib" href="/admin/library" class="btn primary">
+		Libraries
+	</a>
+ 	<script module>
+		import { self } from "/content/api.js";
+		export const run = async () => {
+			let permissions = await self.get_permissions();
+			if (!permissions.match(/administrator|_user/))
+				document.querySelector("#user").hidden = true;
+			if (!permissions.match(/administrator|_library/))
+				document.querySelector("#lib").hidden = true;
+			if (!permissions.match(/special/))
+				document.querySelector("#special").remove();
+		}
+	</script>
+</div>

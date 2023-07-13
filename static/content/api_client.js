@@ -6,6 +6,16 @@ export const user = {
         await http
             .get(`/api/user/${username}`)
             .json(),
+	all: async () => 
+		await http
+			.get("/api/users")
+			.json(),
+	edit: async (uid, data) => 
+		await http
+			.post(`/api/user/${uid}`, {
+					json: data,
+			})
+			.json(),
     login: async (username, password) =>
         await http
             .post("/na/user", {

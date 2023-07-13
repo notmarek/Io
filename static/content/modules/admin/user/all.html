@@ -1,0 +1,50 @@
+<div class="bigaf" module>
+    <h1 class="primary">User management</h1>
+    <div style="margin-bottom: 1.5em;">
+    </div>
+    <div idg="grid">
+        <div style="display: none" id="blueprint" class="item">
+            <div class="item-title">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 50 50"
+                    width="1.5em"
+                    height="1.5em"
+                >
+                    <use
+                        fill="currentColor"
+                        href="/content/imgs/Folder.svg#img"
+                    ></use>
+                </svg>
+                <span id="inner">-</span>
+            </div>
+            <a class="edit" style="cursor: pointer">Edit</a>
+            <div class="delete" style="cursor: pointer">Delete</div>
+        </div>
+
+        <script type="module">
+            import { user} from "/content/api_client.js";
+            export const run = async () => {
+                let blueprint = document.getElementById("blueprint");
+                let grid = document.getElementByGId("grid");
+                let users = await user.all();
+                for (const entry of users) {
+                    let item = blueprint.cloneNode(true);
+                    item.id = "";
+					item.querySelector(".item-title>span#inner").innerText =
+                        entry.username;
+                    item.querySelector(".edit").title = entry.permissions;
+					item.querySelector(".edit").href = `/admin/user/${entry.id}`;
+		    		item.querySelector(".delete").onclick = async (e) => {
+		    			if (!confirm("Are you sure you want to delete the library?")) 
+							return;
+			    		// TODO
+						item.hidden = true;			
+		    		};
+		    		item.style = null;
+                    grid.appendChild(item);
+                }
+            };
+        </script>
+    </div>
+</div>
