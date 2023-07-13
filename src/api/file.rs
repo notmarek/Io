@@ -1,4 +1,7 @@
-use crate::{models::{file::FileActions, user::UserActions}, ErrorResponse, Response, VerifiedAuthData};
+use crate::{
+    models::{file::FileActions, user::UserActions},
+    ErrorResponse, Response, VerifiedAuthData,
+};
 use actix_web::{error, get, post, web, HttpResponse};
 use entity::file::Model as File;
 use entity::user::Model as User;
@@ -78,7 +81,10 @@ async fn nginx(
     db: web::Data<DatabaseConnection>,
 ) -> actix_web::Result<impl actix_web::Responder> {
     if !User::can_access_with_file_token(req_data.token.clone().unwrap(), &db).await {
-        return Err(error::ErrorUnauthorized(ErrorResponse { status: "error".to_string(), error: "".to_string() }));
+        return Err(error::ErrorUnauthorized(ErrorResponse {
+            status: "error".to_string(),
+            error: "".to_string(),
+        }));
     }
     let file_id = match req_data.uri.clone() {
         Some(u) => FileId { file_id: u },
@@ -92,7 +98,6 @@ async fn nginx(
         }));
     };
     let f = f.unwrap();
-
 
     Ok(HttpResponse::Ok()
         .insert_header(("X-Path", f.path))
