@@ -34,7 +34,6 @@ impl Claims {
         encode(&Header::new(Algorithm::RS512), &self, &enc_key)
             .map_err(|e| error::ErrorUnauthorized(e.to_string()))
     }
-
     pub fn create_refresh_token(&self, key_path: &Path) -> Result<String, Error> {
         let key = std::fs::read(key_path)?;
         let enc_key = EncodingKey::from_rsa_pem(&key).unwrap();

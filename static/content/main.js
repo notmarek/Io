@@ -1,8 +1,10 @@
 import { submit, navigate, token, self, save_tokens_from_response } from "./api.js";
 import { get_info, user } from "./api_client.js";
 import { ThemeManager } from "./theme.js";
+let DEBUG = true;
+
 window.submit = submit;
-let path = window.location.pathname;
+export let path = window.location.pathname;
 window.addEventListener("popstate", () => {
     path = window.location.pathname;
     router();
@@ -12,78 +14,13 @@ window.addEventListener(`click`, (e) => {
     if (origin && origin.href) {
         e.preventDefault();
         navigate(origin.href);
-        console.log(`Soft navigating to ${origin.href}.`);
+        log("Navigation", `Soft navigating to ${origin.href}.`);
         return false;
     }
 });
 const log = (src, msg) => {
 	return console.log.bind(console, `%c[${src}]`, `color: ${window.ThemeManager.style.accentColor}`)(msg);
 }
-const dbgr = async () => {
-    let container = document.createElement("div");
-
-    container.style =
-        "z-index:99999999; position: absolute; top:0;left:0;background: #000000af;padding:5px;";
-    container.innerHTML = `[Server] host: ${location.host}
-    <br>[User] username: ${await self.get_username()}
-    permissions: ${await self.get_permissions()}
-    <br>[Modules] main: <span id="dbgr-path">${path}</span>
-    rendered: <span id="dbgr-num-modules">null</span>
-    <br>[Cache] objects: <span id="dbgr-cache-size">null</span>
-    hits: <span id="dbgr-cache-hits">null</span>
-    misses: <span id="dbgr-cache-misses">null</span>
-    invalid: <span id="dbgr-cache-inv">0</span>`;
-    let set_og = window.session.set;
-    let cache_hits = 0;
-    let cache_misses = 0;
-    window.session.set = (k, v) => {
-        let r = set_og(k, v);
-		log("session.set", `Setting '${k}' to '${v}'`);
-        document.getElementById("dbgr-cache-size").innerHTML =
-            Object.keys(window.session).length - 2;
-		document.getElementById("dbgr-cache-inv").innerHTML = window.session.invalid.length;
-        return r;
-    };
-    let invalidate_og = window.session.invalidate;
-	window.session.invalidate = (k) => {
-		log("session.invalidate", `Invalidated '${k}'`);
-		let r = invalidate_og(k);
-		document.getElementById("dbgr-cache-inv").innerHTML = window.session.invalid.length;
-		return r;
-	}
-    let get_og = window.session.get;
-    window.session.get = (k) => {
-        let og = get_og(k);
-		log("session.get", `Cache ${og ? "hit" : "miss"} on key "${k}".`); 
-        if (og) {
-            cache_hits++;
-        } else {
-            cache_misses++;
-        }
-        document.getElementById("dbgr-cache-hits").innerHTML = cache_hits;
-        document.getElementById("dbgr-cache-misses").innerHTML = cache_misses;
-        return og;
-    };
-	let setItem_og = window.localStorage.setItem;
-	localStorage.__proto__.setItem = (...args) => {
-		log("localStorage.setItem", `Set '${args[0]}' to '${args[1]}'`)
-		return setItem_og.apply(localStorage, args);
-	}
-
-    const modules_num = () => {
-        if (container.hidden) return;
-        document.getElementById("dbgr-num-modules").innerHTML =
-            document.querySelectorAll("[module]").length;
-    };
-    let interval = setInterval(modules_num, 300);
-    container.onclick = (e) => (
-        (log("dbgr", "Hiding debugger")), (container.hidden = 1), clearInterval(interval)
-    );
-    window.showDbgr = () => (
-        (log("dbgr", "Showing debugger")), (container.hidden = false), (interval = setInterval(modules_num, 300))
-    );
-    document.body.appendChild(container);
-};
 
 /**
  * Returns a hash code from a string
@@ -131,9 +68,8 @@ let get_module = async (path) => {
     );
 };
 
-let renderModule = (module_path, dom_id, variables = null) => {
+export let renderModule = (module_path, dom_id, variables = null) => {
     module_path = module_path + ".html";
-    document.querySelector("#dbgr-path").innerText = module_path;
     let hash = hashCode(module_path).toString(16).replace("-", "_");
     let el = document.querySelector(dom_id);
     get_module(module_path)
@@ -237,18 +173,21 @@ const router = () => {
     else renderModule("header/unauthenticated", "#header div.buttons");
 
     let fn = simpleRoutes[path];
-    if (fn != undefined) fn();
+    if (fn != undefined) {
+		log("Router", `Found a dumb route for '${path}'`);
+		return fn()
+	}
     else {
         // if  \/library\/(.*?)/
-        console.log(path);
         for (const [matcher, fn] of Object.entries(smartRoutes)) {
             let match = path.match(matcher);
-            console.log(match);
-            if (match) return fn.apply(undefined, [match.groups]);
+            if (match) {	
+				log("Router", `Found a smart route for '${match}'`);
+            	return fn.apply(undefined, [match.groups]);
+			}
         }
-        // renderModule(path.slice(1), "#main");
-        // console.log("Oh no", path)
-        // navigate("/");
+		log("Router", `No route found for '${path}' returning 404`);
+		return renderModule("misc/404", "#main");
     }
 };
 
@@ -258,7 +197,12 @@ const setup_theme_manager = () => {
 };
 setup_theme_manager();
 setup_storage();
-await dbgr();
+if (DEBUG) {
+	const { dbgr } = await import("./debugger.js");
+	renderModule = (await dbgr(path, self, renderModule, log)).renderModule;
+} else {
+	console.log = { bind(...a){return (...a) => {}}};
+}
 if (localStorage.getItem("refresh_token")) 
 	user.refresh_token(localStorage.getItem("refresh_token")).then(res => {	
 		if (res.status !== "error")
