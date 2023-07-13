@@ -40,7 +40,12 @@ export let token = () => {
     return `${localStorage.getItem("token_type")} ${token}`;
 }
 
-
+export const save_tokens_from_response = (res) => {
+	localStorage.setItem("token", res.token);
+    localStorage.setItem("refresh_token", res.refresh_token);
+    localStorage.setItem("token_type", res.token_type);
+    localStorage.setItem("token_exp", res.expiration);
+}
 export let submit = {
     login: async (event) => {
         event.preventDefault();
@@ -49,10 +54,7 @@ export let submit = {
         let passwd = form.querySelector("input[name='password']").value;
         let res = await user.login(uname, passwd);
         if (res.status !== "error") {
-            localStorage.setItem("token", res.token);
-            localStorage.setItem("refresh_token", res.refresh_token);
-            localStorage.setItem("token_type", res.token_type);
-            localStorage.setItem("token_exp", res.expiration);
+			save_tokens_from_response(res);
             await save_user_info();
             navigate('/');
         } else {
@@ -67,10 +69,7 @@ export let submit = {
         let passwd = form.querySelector("input[name='password']").value;
         let res = await user.register(uname, passwd);
         if (res.status !== "error") {
-            localStorage.setItem("token", res.token);
-            localStorage.setItem("refresh_token", res.refresh_token);
-            localStorage.setItem("token_type", res.token_type);
-            localStorage.setItem("token_exp", res.expiration);
+			save_tokens_from_response(res);
             await save_user_info();
             navigate('/');
         } else {

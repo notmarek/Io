@@ -20,6 +20,7 @@
                 for (const entry of libraries) {
                     console.log(entry);
                     let item = blueprint.cloneNode(true);
+					item.id = "";
                     item.style = null;
                     item.href = "/library/" + entry.id;
                     item.querySelector(".item-title>span#inner").innerText = entry.name;

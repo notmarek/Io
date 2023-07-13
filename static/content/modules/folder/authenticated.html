@@ -41,6 +41,7 @@
                               entry.path.split(".").pop().toLowerCase()
                           ] || "File.svg";
                     let item = blueprint.cloneNode(true);
+					item.id = "";
                     item.style = null;
                     item.href =
                         (entry.folder ? "/folder/" : "/file/") + entry.id;

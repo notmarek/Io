@@ -13,6 +13,13 @@ export const user = {
 		noauth: 1,
             })
             .json(),
+	refresh_token: async (refresh_token) => 
+		await http
+			.post("/na/user", {
+				json: { refresh_token, identifier: "refresh_token" },
+				noauth: 1 
+			})
+			.json(),
     register: async (username, password) =>
         await http
             .put("/na/user", {

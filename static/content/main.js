@@ -1,7 +1,6 @@
-import { submit, navigate, token, self } from "./api.js";
-import { get_info } from "./api_client.js";
+import { submit, navigate, token, self, save_tokens_from_response } from "./api.js";
+import { get_info, user } from "./api_client.js";
 import { ThemeManager } from "./theme.js";
-console.log(await get_info());
 window.submit = submit;
 let path = window.location.pathname;
 window.addEventListener("popstate", () => {
@@ -10,14 +9,16 @@ window.addEventListener("popstate", () => {
 });
 window.addEventListener(`click`, (e) => {
     const origin = e.target.closest(`a`);
-    if (origin) {
+    if (origin && origin.href) {
         e.preventDefault();
         navigate(origin.href);
         console.log(`Soft navigating to ${origin.href}.`);
         return false;
     }
 });
-
+const log = (src, msg) => {
+	return console.log.bind(console, `%c[${src}]`, `color: ${window.ThemeManager.style.accentColor}`)(msg);
+}
 const dbgr = async () => {
     let container = document.createElement("div");
 
@@ -37,6 +38,7 @@ const dbgr = async () => {
     let cache_misses = 0;
     window.session.set = (k, v) => {
         let r = set_og(k, v);
+		log("session.set", `Setting '${k}' to '${v}'`);
         document.getElementById("dbgr-cache-size").innerHTML =
             Object.keys(window.session).length - 2;
 		document.getElementById("dbgr-cache-inv").innerHTML = window.session.invalid.length;
@@ -44,6 +46,7 @@ const dbgr = async () => {
     };
     let invalidate_og = window.session.invalidate;
 	window.session.invalidate = (k) => {
+		log("session.invalidate", `Invalidated '${k}'`);
 		let r = invalidate_og(k);
 		document.getElementById("dbgr-cache-inv").innerHTML = window.session.invalid.length;
 		return r;
@@ -51,6 +54,7 @@ const dbgr = async () => {
     let get_og = window.session.get;
     window.session.get = (k) => {
         let og = get_og(k);
+		log("session.get", `Cache ${og ? "hit" : "miss"} on key "${k}".`); 
         if (og) {
             cache_hits++;
         } else {
@@ -60,6 +64,11 @@ const dbgr = async () => {
         document.getElementById("dbgr-cache-misses").innerHTML = cache_misses;
         return og;
     };
+	let setItem_og = window.localStorage.setItem;
+	localStorage.__proto__.setItem = (...args) => {
+		log("localStorage.setItem", `Set '${args[0]}' to '${args[1]}'`)
+		return setItem_og.apply(localStorage, args);
+	}
 
     const modules_num = () => {
         if (container.hidden) return;
@@ -68,10 +77,10 @@ const dbgr = async () => {
     };
     let interval = setInterval(modules_num, 300);
     container.onclick = (e) => (
-        (container.hidden = 1), clearInterval(interval)
+        (log("dbgr", "Hiding debugger")), (container.hidden = 1), clearInterval(interval)
     );
     window.showDbgr = () => (
-        (container.hidden = false), (interval = setInterval(modules_num, 300))
+        (log("dbgr", "Showing debugger")), (container.hidden = false), (interval = setInterval(modules_num, 300))
     );
     document.body.appendChild(container);
 };
@@ -165,7 +174,7 @@ let renderModule = (module_path, dom_id, variables = null) => {
                 );
                 mutated = mutated.replace(
                     "console.log",
-                    `console.log.bind(console, "%c[Modules/${module_path}]", "color: #ff0069")`
+                    `console.log.bind(console, "%c[Modules/${module_path}]", "color: ${window.ThemeManager.style.accentColor}")`
                 );
                 const blob = new Blob([mutated], {
                     type: "application/javascript",
@@ -247,8 +256,13 @@ const setup_theme_manager = () => {
 	window.ThemeManager = ThemeManager;
 	window.ThemeManager.init();
 };
-
 setup_theme_manager();
 setup_storage();
 await dbgr();
+if (localStorage.getItem("refresh_token")) 
+	user.refresh_token(localStorage.getItem("refresh_token")).then(res => {	
+		if (res.status !== "error")
+			save_tokens_from_response(res);
+	}
+);
 router();
