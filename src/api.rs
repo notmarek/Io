@@ -23,6 +23,7 @@ pub fn configure_no_auth(cfg: &mut web::ServiceConfig) {
         web::scope("/na")
             .configure(info::configure_na)
             .configure(user::configure_na)
+            .configure(file::configure_na)
             .service(health),
     );
 }
