@@ -1,6 +1,8 @@
 use crate::auth::Claims;
 use argon2::{self, hash_encoded, verify_encoded, Config, ThreadMode, Variant, Version};
 use async_trait::async_trait;
+use entity::file_tokens;
+use entity::prelude::FileTokens;
 use entity::prelude::User;
 use entity::user;
 use sea_orm::prelude::*;
@@ -37,6 +39,8 @@ pub trait UserActions {
         token_validity: i64,
     ) -> Result<Claims, String>;
     fn refresh(self, token_validity: i64) -> Claims;
+    async fn can_access_with_file_token(file_token: String, db: &DatabaseConnection) -> bool;
+    async fn get_file_token(&self, db: &DatabaseConnection) -> String;
     async fn get_all(limit: i64, page: i64, pool: &DatabaseConnection) -> Vec<user::Model>;
     async fn get(uuid: String, db: &DatabaseConnection) -> Result<user::Model, String>;
     fn new(username: String, password: String, permissions: Vec<String>) -> user::Model;
@@ -59,6 +63,30 @@ impl UserActions for user::Model {
         }
     }
 
+    async fn get_file_token(&self, db: &DatabaseConnection) -> String {
+        if let Ok(Some(ft)) = self.find_related(FileTokens).one(db).await {
+            ft.token.clone()
+        } else {
+            "".to_string()
+        }
+    }
+
+    async fn can_access_with_file_token(file_token: String, db: &DatabaseConnection) -> bool {
+        let ft = match FileTokens::find()
+            .filter(file_tokens::Column::Token.eq(&file_token))
+            .one(db)
+            .await
+        {
+            Ok(Some(ft)) => ft,
+            _ => return false,
+        };
+
+        let user = match ft.find_related(User).one(db).await {
+            Ok(Some(u)) => u,
+            _ => return false,
+        };
+        !user.has_permission_one_of(vec!["banned"])
+    }
     async fn get(uuid: String, db: &DatabaseConnection) -> Result<user::Model, String> {
         match User::find_by_id(&uuid).one(db).await {
             Ok(Some(u)) => Ok(u),
@@ -90,12 +118,23 @@ impl UserActions for user::Model {
             Ok(None) => {
                 self.password = hash_password(self.password.clone(), salt);
                 let active: user::ActiveModel = self.clone().into();
+
                 match active.insert(db).await {
-                    Ok(_) => Ok(Claims::new(
-                        self.id.clone(),
-                        self.permissions.clone(),
-                        token_validity,
-                    )),
+                    Ok(_) => {
+                        let ft = file_tokens::Model {
+                            id: Uuid::new_v4().to_string(),
+                            owner: self.id.clone(),
+                            token: Uuid::new_v4().to_string().replace("-", ""),
+                        };
+                        let fta: file_tokens::ActiveModel = ft.into();
+                        fta.insert(db).await.unwrap();
+
+                        Ok(Claims::new(
+                            self.id.clone(),
+                            self.permissions.clone(),
+                            token_validity,
+                        ))
+                    }
                     Err(e) => Err(e.to_string()),
                 }
             }

@@ -11,7 +11,7 @@ window.addEventListener("popstate", () => {
 });
 window.addEventListener(`click`, (e) => {
     const origin = e.target.closest(`a`);
-    if (origin && origin.href) {
+    if (origin && origin.href && !origin.href.startsWith(/http:\/\/|https:\/\//)) {
         e.preventDefault();
         navigate(origin.href);
         log("Navigation", `Soft navigating to ${origin.href}.`);

@@ -1,6 +1,7 @@
-use crate::{models::file::FileActions, ErrorResponse, Response, VerifiedAuthData};
+use crate::{models::{file::FileActions, user::UserActions}, ErrorResponse, Response, VerifiedAuthData};
 use actix_web::{error, get, post, web, HttpResponse};
 use entity::file::Model as File;
+use entity::user::Model as User;
 use log::info;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
@@ -24,8 +25,6 @@ pub struct Nginx {
     #[serde(rename = "u")]
     pub uri: Option<String>,
 }
-
-
 
 #[utoipa::path(
     tag = "File",
@@ -73,12 +72,14 @@ async fn file(
     }))
 }
 
-
 #[post("/file/nginx")]
 async fn nginx(
-   req_data: web::Json<Nginx>,
-   db: web::Data<DatabaseConnection>,
+    req_data: web::Json<Nginx>,
+    db: web::Data<DatabaseConnection>,
 ) -> actix_web::Result<impl actix_web::Responder> {
+    if !User::can_access_with_file_token(req_data.token.clone().unwrap(), &db).await {
+        return Err(error::ErrorUnauthorized(ErrorResponse { status: "error".to_string(), error: "".to_string() }));
+    }
     let file_id = match req_data.uri.clone() {
         Some(u) => FileId { file_id: u },
         _ => return Err(error::ErrorUnauthorized("nope")),
@@ -91,9 +92,11 @@ async fn nginx(
         }));
     };
     let f = f.unwrap();
-    log::error!("{:#?}", req_data);
-     
-    Ok(HttpResponse::Ok().insert_header(("X-Path", f.path)).finish())
+
+
+    Ok(HttpResponse::Ok()
+        .insert_header(("X-Path", f.path))
+        .finish())
 }
 
 pub fn configure_na(cfg: &mut web::ServiceConfig) {

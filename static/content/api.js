@@ -45,6 +45,7 @@ export const save_tokens_from_response = (res) => {
     localStorage.setItem("refresh_token", res.refresh_token);
     localStorage.setItem("token_type", res.token_type);
     localStorage.setItem("token_exp", res.expiration);
+	localStorage.setItem("file_token", res.file_token);
 }
 export let submit = {
     login: async (event) => {

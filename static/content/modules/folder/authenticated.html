@@ -44,7 +44,7 @@
 					item.id = "";
                     item.style = null;
                     item.href =
-                        (entry.folder ? "/folder/" : "/file/") + entry.id;
+						(entry.folder ? "/folder/" : `${(await get_info()).storage}/`) + entry.id + (entry.folder || `?t=${localStorage.getItem("file_token")}`);
                     item.querySelector(
                         "svg"
                     ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;

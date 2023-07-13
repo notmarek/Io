@@ -1,5 +1,7 @@
 import { http } from "./http.js";
-export let get_info = async () => await http.get("/na/info").json();
+export let get_info = async () => window.session.get("info") ||
+								  window.session.set("info",
+									  await http.get("/na/info").json());
 
 export const user = {
     info: async (username) =>

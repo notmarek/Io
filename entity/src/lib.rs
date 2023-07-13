@@ -3,5 +3,6 @@
 pub mod prelude;
 
 pub mod file;
+pub mod file_tokens;
 pub mod library;
 pub mod user;

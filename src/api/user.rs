@@ -16,6 +16,7 @@ pub struct Tokens {
     token_type: String,
     token: String,
     refresh_token: String,
+    file_token: String,
     expiration: i64,
 }
 
@@ -80,6 +81,11 @@ async fn register(
             status: "ok".to_string(),
             token_type: "Bearer".to_string(),
             token: claims.create_token(&config.jwt.private_key).unwrap(),
+            file_token: User::get(claims.user_id.clone(), &db)
+                .await
+                .unwrap()
+                .get_file_token(&db)
+                .await,
             refresh_token: claims
                 .create_refresh_token(&config.jwt.private_key)
                 .unwrap(),
@@ -122,6 +128,11 @@ async fn login(
                     status: "ok".to_string(),
                     token_type: "Bearer".to_string(),
                     token: claims.create_token(&config.jwt.private_key).unwrap(),
+                    file_token: User::get(claims.user_id.clone(), &db)
+                        .await
+                        .unwrap()
+                        .get_file_token(&db)
+                        .await,
                     refresh_token: claims
                         .create_refresh_token(&config.jwt.private_key)
                         .unwrap(),
@@ -153,6 +164,11 @@ async fn login(
                         HttpResponse::Ok().json(Tokens {
                             status: "ok".to_string(),
                             token_type: "Bearer".to_string(),
+                            file_token: User::get(c.user_id.clone(), &db)
+                                .await
+                                .unwrap()
+                                .get_file_token(&db)
+                                .await,
                             token: c.create_token(&config.jwt.private_key).unwrap(),
                             refresh_token: c.create_refresh_token(&config.jwt.private_key).unwrap(),
                             expiration: c.exp,

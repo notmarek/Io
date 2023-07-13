@@ -19,7 +19,7 @@
 
         <script type="module">
             import { available_icons } from "/content/consts.js";
-            import { library } from "/content/api_client.js";
+            import { library, get_info } from "/content/api_client.js";
             let library_id = "##library_id##";
             export const run = async () => {
                 let blueprint = document.getElementById("blueprint");
@@ -42,7 +42,7 @@
 					item.id = null;
                     item.style = null;
                     item.href =
-                        (entry.folder ? "/folder/" : "/file/") + entry.id;
+						(entry.folder ? "/folder/" : `${(await get_info()).storage}/`) + entry.id + (entry.folder || `?t=${localStorage.getItem("file_token")}`);
                     item.querySelector(
                         "svg"
                     ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
