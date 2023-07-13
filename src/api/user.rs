@@ -1,12 +1,12 @@
 use crate::auth::Claims;
 use crate::config::Config;
-use crate::models::user::UserActions;
-use crate::ErrorResponse;
+use crate::models::user::{hash_password, UserActions};
 use crate::{AuthData, VerifiedAuthData};
+use crate::{ErrorResponse, Response};
 use actix_web::{error, web, HttpResponse};
 use actix_web::{get, post, put};
-use entity::user::Model as User;
-use sea_orm::DatabaseConnection;
+use entity::user::{ActiveModel, Model as User};
+use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
@@ -29,6 +29,13 @@ pub struct UserRequest {
     pub invite: Option<String>,      // TODO: invite system
     pub newpassword: Option<String>, // TODO: password changing
     pub private: Option<String>,     // TODO: account privacy settings
+}
+
+#[derive(ToSchema, Serialize, Deserialize, Debug)]
+pub struct EditUser {
+    username: Option<String>,
+    password: Option<String>,
+    permissions: Option<String>,
 }
 
 #[derive(ToSchema, Serialize, Deserialize, Debug)]
@@ -244,10 +251,63 @@ async fn user_list(
     Ok(HttpResponse::Ok().json(users))
 }
 
+// Edit a user with id
+#[utoipa::path(
+    tag = "User",
+    context_path = "/api",
+    responses(
+        (status = 200, description = "Edits a user.", body = [Response]),
+        (status = 404, description = "No such user.", body = ErrorResponse),
+        (status = 401, description = "Access denied.", body = ErrorResponse)
+    ),
+    request_body(content = EditUser, description = "Data to edit a user", content_type = "application/json"),
+    params(Uid),
+    security(("token" = []))
+)]
+#[post("/user/{user_id}")]
+async fn edit_user(
+    path: web::Path<Uid>,
+    AuthData(user): AuthData,
+    db: web::Data<DatabaseConnection>,
+    req_data: web::Json<EditUser>,
+) -> actix_web::Result<impl actix_web::Responder> {
+    if !user.has_permission_one_of(vec!["edit_users", "*_users", "administrator"]) {
+        return Err(error::ErrorForbidden(ErrorResponse {
+            status: "error".to_string(),
+            error: "missing_permissions".to_string(),
+        }));
+    }
+    let user = match User::get(path.user_id.clone(), &db).await {
+        Ok(u) => u,
+        Err(e) => {
+            return Err(error::ErrorNotFound(ErrorResponse {
+                status: "error".to_string(),
+                error: e,
+            }))
+        }
+    };
+    let mut active: ActiveModel = user.into();
+    if let Some(p) = req_data.password.clone() {
+        active.password = ActiveValue::set(hash_password(p, "epicsalt#".to_string()));
+    };
+    if let Some(u) = req_data.username.clone() {
+        active.username = ActiveValue::set(u);
+    };
+    if let Some(p) = req_data.permissions.clone() {
+        active.permissions = ActiveValue::set(p);
+    };
+    let db: &DatabaseConnection = &db;
+    active.update(db).await.unwrap();
+    Ok(HttpResponse::Ok().json(Response {
+        status: "ok".to_string(),
+        data: "Edited",
+    }))
+}
+
 pub fn configure_na(cfg: &mut web::ServiceConfig) {
     cfg.service(register).service(login);
 }
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(user_info).service(user_list);
+    cfg.service(user_info).service(user_list).service(edit_user);
 }
