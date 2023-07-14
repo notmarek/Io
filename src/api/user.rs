@@ -327,8 +327,8 @@ pub fn configure_na(cfg: &mut web::ServiceConfig) {
 }
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(user_info)
+    cfg.service(me)
+        .service(user_info)
         .service(user_list)
-        .service(edit_user)
-        .service(me);
+        .service(edit_user);
 }
