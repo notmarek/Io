@@ -84,7 +84,7 @@ impl LibraryActions for library::Model {
         let mut active: ActiveModel = self.clone().into();
         active.last_scan = ActiveValue::set(chrono::Utc::now().naive_local());
         active.update(db).await.unwrap();
-        crawl(Path::new(&self.path), self.depth, db, self.id.clone(), None)
+        crawl(Path::new(&self.path), self.depth, db, self.id, None)
             .await
             .unwrap()
     }

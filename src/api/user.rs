@@ -82,7 +82,7 @@ async fn register(
             status: "ok".to_string(),
             token_type: "Bearer".to_string(),
             token: claims.create_token(&config.jwt.private_key).unwrap(),
-            file_token: User::get(claims.user_id.clone(), &db)
+            file_token: User::get(claims.user_id, &db)
                 .await
                 .unwrap()
                 .get_file_token(&db)
@@ -129,7 +129,7 @@ async fn login(
                     status: "ok".to_string(),
                     token_type: "Bearer".to_string(),
                     token: claims.create_token(&config.jwt.private_key).unwrap(),
-                    file_token: User::get(claims.user_id.clone(), &db)
+                    file_token: User::get(claims.user_id, &db)
                         .await
                         .unwrap()
                         .get_file_token(&db)
@@ -165,7 +165,7 @@ async fn login(
                         HttpResponse::Ok().json(Tokens {
                             status: "ok".to_string(),
                             token_type: "Bearer".to_string(),
-                            file_token: User::get(c.user_id.clone(), &db)
+                            file_token: User::get(c.user_id, &db)
                                 .await
                                 .unwrap()
                                 .get_file_token(&db)
@@ -227,7 +227,7 @@ async fn user_info(
                     error: "missing_permissions".to_string(),
                 }));
             }
-            match User::get(path.user_id.clone(), &db).await {
+            match User::get(path.user_id, &db).await {
                 Ok(u) => u,
                 Err(e) => {
                     return Err(error::ErrorNotFound(ErrorResponse {
@@ -294,7 +294,7 @@ async fn edit_user(
             error: "missing_permissions".to_string(),
         }));
     }
-    let user = match User::get(path.user_id.clone(), &db).await {
+    let user = match User::get(path.user_id, &db).await {
         Ok(u) => u,
         Err(e) => {
             return Err(error::ErrorNotFound(ErrorResponse {

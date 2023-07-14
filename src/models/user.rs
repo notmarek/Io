@@ -66,7 +66,7 @@ impl UserActions for user::Model {
 
     async fn get_file_token(&self, db: &DatabaseConnection) -> String {
         if let Ok(Some(ft)) = self.find_related(FileTokens).one(db).await {
-            ft.token.clone()
+            ft.token
         } else {
             "".to_string()
         }
@@ -124,14 +124,14 @@ impl UserActions for user::Model {
                     Ok(_) => {
                         let ft = file_tokens::Model {
                             id: Uuid::new_v4(),
-                            owner: self.id.clone(),
-                            token: Uuid::new_v4().to_string().replace("-", ""),
+                            owner: self.id,
+                            token: Uuid::new_v4().to_string().replace('-', ""),
                         };
                         let fta: file_tokens::ActiveModel = ft.into();
                         fta.insert(db).await.unwrap();
 
                         Ok(Claims::new(
-                            self.id.clone(),
+                            self.id,
                             self.permissions.clone(),
                             token_validity,
                         ))

@@ -76,7 +76,7 @@ async fn library(
         files: Vec<File>,
     }
     let library = {
-        match Library::get(path.library_id.clone(), &db).await {
+        match Library::get(path.library_id, &db).await {
             Ok(u) => Response {
                 status: "ok".to_string(),
                 data: Bruh {
@@ -121,7 +121,7 @@ async fn scan_library(
             error: "missing_permissions".to_string(),
         }));
     }
-    match Library::get(path.library_id.clone(), &db).await {
+    match Library::get(path.library_id, &db).await {
         Ok(u) => queue
             .lock()
             .await
@@ -163,7 +163,7 @@ async fn delete_library(
             error: "missing_permissions".to_string(),
         }));
     }
-    match Library::delete(path.library_id.clone(), &db).await {
+    match Library::delete(path.library_id, &db).await {
         Ok(u) => Ok(HttpResponse::Ok().json(Response {
             status: "ok".to_string(),
             data: u,

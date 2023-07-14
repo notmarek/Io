@@ -18,7 +18,7 @@ struct FileId {
 
 impl FileId {
     pub async fn get(&self, pool: &DatabaseConnection) -> Result<File, String> {
-        File::get(self.file_id.clone(), pool).await
+        File::get(self.file_id, pool).await
     }
 }
 
@@ -87,7 +87,7 @@ async fn nginx(
             error: "".to_string(),
         }));
     }
-    let file_id = match req_data.uri.clone() {
+    let file_id = match req_data.uri {
         Some(u) => FileId { file_id: u },
         _ => return Err(error::ErrorUnauthorized("nope")),
     };

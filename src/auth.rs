@@ -9,8 +9,8 @@ use entity::user::Model as User;
 use jsonwebtoken::{self, decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use std::path::Path;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
@@ -41,7 +41,7 @@ impl Claims {
         encode(
             &Header::new(Algorithm::RS512),
             &Self {
-                user_id: self.user_id.clone(),
+                user_id: self.user_id,
                 perms: vec!["REFRESH".to_string()],
                 exp: (Utc::now() + Duration::hours(24 * 93)).timestamp(),
             },
