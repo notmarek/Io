@@ -8,7 +8,7 @@ use utoipa::ToSchema;
 #[sea_orm(table_name = "library")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
     pub path: String,
     pub depth: i32,

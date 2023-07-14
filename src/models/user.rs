@@ -7,6 +7,7 @@ use entity::prelude::User;
 use entity::user;
 use sea_orm::prelude::*;
 use std::fmt::Display;
+use uuid::Uuid;
 
 pub fn hash_password(password: String, salt: String) -> String {
     let config = Config {
@@ -42,7 +43,7 @@ pub trait UserActions {
     async fn can_access_with_file_token(file_token: String, db: &DatabaseConnection) -> bool;
     async fn get_file_token(&self, db: &DatabaseConnection) -> String;
     async fn get_all(limit: i64, page: i64, pool: &DatabaseConnection) -> Vec<user::Model>;
-    async fn get(uuid: String, db: &DatabaseConnection) -> Result<user::Model, String>;
+    async fn get(uuid: Uuid, db: &DatabaseConnection) -> Result<user::Model, String>;
     fn new(username: String, password: String, permissions: Vec<String>) -> user::Model;
 }
 
@@ -56,7 +57,7 @@ impl UserActions for user::Model {
 
     fn new(username: String, password: String, permissions: Vec<String>) -> user::Model {
         user::Model {
-            id: Uuid::new_v4().to_string(),
+            id: Uuid::new_v4(),
             username,
             password,
             permissions: permissions.join(","),
@@ -87,8 +88,8 @@ impl UserActions for user::Model {
         };
         !user.has_permission_one_of(vec!["banned"])
     }
-    async fn get(uuid: String, db: &DatabaseConnection) -> Result<user::Model, String> {
-        match User::find_by_id(&uuid).one(db).await {
+    async fn get(uuid: Uuid, db: &DatabaseConnection) -> Result<user::Model, String> {
+        match User::find_by_id(uuid).one(db).await {
             Ok(Some(u)) => Ok(u),
             Ok(None) => Err(String::from("invalid_user")),
             Err(e) => Err(e.to_string()),
@@ -122,7 +123,7 @@ impl UserActions for user::Model {
                 match active.insert(db).await {
                     Ok(_) => {
                         let ft = file_tokens::Model {
-                            id: Uuid::new_v4().to_string(),
+                            id: Uuid::new_v4(),
                             owner: self.id.clone(),
                             token: Uuid::new_v4().to_string().replace("-", ""),
                         };

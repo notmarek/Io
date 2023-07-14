@@ -3,16 +3,15 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-
 #[derive(
     Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, ToSchema, Default,
 )]
 #[sea_orm(table_name = "file")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: String,
-    pub parent: Option<String>,
-    pub library_id: String,
+    pub id: Uuid,
+    pub parent: Option<Uuid>,
+    pub library_id: Uuid,
     pub path: String,
     pub folder: bool,
     pub last_update: DateTime,

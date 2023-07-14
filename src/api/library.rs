@@ -10,10 +10,11 @@ use entity::library::Model as Library;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams, ToSchema};
+use uuid::Uuid;
 
 #[derive(IntoParams, Deserialize)]
 pub struct LibId {
-    library_id: String,
+    library_id: Uuid,
 }
 
 /// List all libraries

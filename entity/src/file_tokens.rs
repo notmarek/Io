@@ -8,8 +8,8 @@ use utoipa::ToSchema;
 #[sea_orm(table_name = "file_tokens")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: String,
-    pub owner: String,
+    pub id: Uuid,
+    pub owner: Uuid,
     pub token: String,
 }
 

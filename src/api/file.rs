@@ -9,10 +9,11 @@ use log::info;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams};
+use uuid::Uuid;
 
 #[derive(Deserialize, IntoParams)]
 struct FileId {
-    file_id: String,
+    file_id: Uuid,
 }
 
 impl FileId {
@@ -26,7 +27,7 @@ pub struct Nginx {
     #[serde(rename = "t")]
     pub token: Option<String>,
     #[serde(rename = "u")]
-    pub uri: Option<String>,
+    pub uri: Option<Uuid>,
 }
 
 #[utoipa::path(

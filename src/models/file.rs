@@ -12,13 +12,13 @@ use uuid::Uuid;
 #[allow(clippy::new_ret_no_self)]
 pub trait FileActions {
     async fn new(
-        parent_file_id: Option<String>,
-        library_id: String,
+        parent_file_id: Option<Uuid>,
+        library_id: Uuid,
         path: String,
         folder: bool,
         db: &DatabaseConnection,
     ) -> Result<file::Model, String>;
-    async fn get(fid: String, db: &DatabaseConnection) -> Result<file::Model, String>;
+    async fn get(fid: Uuid, db: &DatabaseConnection) -> Result<file::Model, String>;
     async fn get_from_path(path: String, db: &DatabaseConnection) -> Result<file::Model, String>;
     async fn scan(&mut self, db: &DatabaseConnection);
     async fn get_folder_content(&self, db: &DatabaseConnection)
@@ -28,8 +28,8 @@ pub trait FileActions {
 #[async_trait]
 impl FileActions for file::Model {
     async fn new(
-        parent_file_id: Option<String>,
-        library_id: String,
+        parent_file_id: Option<Uuid>,
+        library_id: Uuid,
         path: String,
         folder: bool,
         db: &DatabaseConnection,
@@ -42,7 +42,7 @@ impl FileActions for file::Model {
             Ok(Some(f)) => Ok(f),
             Ok(None) => {
                 let active: file::ActiveModel = file::Model {
-                    id: Uuid::new_v4().to_string(),
+                    id: Uuid::new_v4(),
                     parent: parent_file_id,
                     library_id,
                     // parent_file_id,
@@ -58,7 +58,7 @@ impl FileActions for file::Model {
         }
     }
 
-    async fn get(fid: String, db: &DatabaseConnection) -> Result<file::Model, String> {
+    async fn get(fid: Uuid, db: &DatabaseConnection) -> Result<file::Model, String> {
         match File::find_by_id(fid).one(db).await {
             Ok(Some(f)) => Ok(f),
             Ok(None) => Err("No such file could be found.".to_string()),

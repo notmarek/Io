@@ -4,6 +4,7 @@ use async_recursion::async_recursion;
 use entity::file::Model as File;
 use log::debug;
 use sea_orm::DatabaseConnection;
+use uuid::Uuid;
 use std::{fs, path::Path, time::SystemTime};
 
 #[async_recursion]
@@ -11,8 +12,8 @@ pub async fn crawl(
     path: &Path,
     depth_ttl: i32,
     db: &DatabaseConnection,
-    library_id: String,
-    parent_file_id: Option<String>,
+    library_id: Uuid,
+    parent_file_id: Option<Uuid>,
 ) -> Result<(), String> {
     debug!("Scanning {}", path.to_str().unwrap());
     let mut file = File::new(

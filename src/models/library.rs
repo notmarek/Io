@@ -17,10 +17,10 @@ pub trait LibraryActions {
         depth: i32,
         db: &DatabaseConnection,
     ) -> Result<library::Model, String>;
-    async fn get(lib_id: String, db: &DatabaseConnection) -> Result<library::Model, String>;
+    async fn get(lib_id: Uuid, db: &DatabaseConnection) -> Result<library::Model, String>;
     async fn get_files(&self, db: &DatabaseConnection) -> Result<Vec<file::Model>, String>;
     async fn get_all(db: &DatabaseConnection) -> Result<Vec<library::Model>, String>;
-    async fn delete(lib_id: String, db: &DatabaseConnection) -> Result<u64, String>;
+    async fn delete(lib_id: Uuid, db: &DatabaseConnection) -> Result<u64, String>;
     async fn scan(&self, db: &DatabaseConnection);
 }
 
@@ -40,7 +40,7 @@ impl LibraryActions for library::Model {
             Ok(Some(l)) => Ok(l),
             Ok(None) => {
                 let active: library::ActiveModel = library::Model {
-                    id: Uuid::new_v4().to_string(),
+                    id: Uuid::new_v4(),
                     name,
                     path,
                     depth,
@@ -53,7 +53,7 @@ impl LibraryActions for library::Model {
         }
     }
 
-    async fn get(lib_id: String, db: &DatabaseConnection) -> Result<library::Model, String> {
+    async fn get(lib_id: Uuid, db: &DatabaseConnection) -> Result<library::Model, String> {
         match Library::find_by_id(lib_id).one(db).await {
             Ok(Some(l)) => Ok(l),
             Ok(None) => Err("No such library was found.".to_string()),
@@ -72,7 +72,7 @@ impl LibraryActions for library::Model {
         Library::find().all(db).await.map_err(|e| e.to_string())
     }
 
-    async fn delete(lib_id: String, db: &DatabaseConnection) -> Result<u64, String> {
+    async fn delete(lib_id: Uuid, db: &DatabaseConnection) -> Result<u64, String> {
         match Library::delete_by_id(lib_id).exec(db).await {
             Ok(e) => Ok(e.rows_affected),
             Err(e) => Err(e.to_string()),

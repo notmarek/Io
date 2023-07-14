@@ -9,6 +9,7 @@ use entity::user::{ActiveModel, Model as User};
 use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
+use uuid::Uuid;
 
 #[derive(ToSchema, Serialize, Deserialize)]
 pub struct Tokens {
@@ -196,7 +197,7 @@ async fn login(
 
 #[derive(IntoParams, Deserialize)]
 struct Uid {
-    user_id: String,
+    user_id: Uuid,
 }
 
 /// Get User By ID
@@ -217,7 +218,7 @@ async fn user_info(
     db: web::Data<DatabaseConnection>,
 ) -> actix_web::Result<impl actix_web::Responder> {
     let user_info = {
-        if path.user_id == "@me" {
+        if path.user_id.is_nil() {
             user
         } else {
             if !user.has_permission_one_of(vec!["view_users", "*_users", "administrator"]) {

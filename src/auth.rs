@@ -9,17 +9,18 @@ use entity::user::Model as User;
 use jsonwebtoken::{self, decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use std::path::Path;
 
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
-    pub user_id: String,
+    pub user_id: Uuid,
     pub perms: Vec<String>,
     pub exp: i64,
 }
 
 impl Claims {
-    pub fn new(user_id: String, permissions: String, valid_for: i64) -> Self {
+    pub fn new(user_id: Uuid, permissions: String, valid_for: i64) -> Self {
         Self {
             user_id,
             perms: permissions.split(',').map(|e| e.to_string()).collect(),

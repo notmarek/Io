@@ -8,7 +8,7 @@ use utoipa::ToSchema;
 #[sea_orm(table_name = "user")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: String,
+    pub id: Uuid,
     pub username: String,
     pub password: String,
     pub permissions: String,
