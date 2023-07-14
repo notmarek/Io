@@ -48,7 +48,7 @@ impl FileActions for file::Model {
                     // parent_file_id,
                     path,
                     folder,
-                    last_update: chrono::NaiveDateTime::MIN,
+                    last_update:  chrono::NaiveDateTime::from_timestamp_opt(0, 1).unwrap(),
                     ..Default::default()
                 }
                 .into();

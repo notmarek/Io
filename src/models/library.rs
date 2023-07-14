@@ -44,7 +44,7 @@ impl LibraryActions for library::Model {
                     name,
                     path,
                     depth,
-                    last_scan: chrono::NaiveDateTime::MIN,
+                    last_scan: chrono::NaiveDateTime::from_timestamp_opt(0, 1).unwrap(),
                 }
                 .into();
                 active.insert(db).await.map_err(|e| e.to_string())
