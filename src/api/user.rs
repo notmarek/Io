@@ -200,6 +200,11 @@ struct Uid {
     user_id: Uuid,
 }
 
+#[get("/user/@me")]
+async fn me(AuthData(user): AuthData) -> actix_web::Result<impl actix_web::Responder> {
+    Ok(HttpResponse::Ok().json(user))
+}
+
 /// Get User By ID
 #[utoipa::path(
     tag = "User",
@@ -218,23 +223,19 @@ async fn user_info(
     db: web::Data<DatabaseConnection>,
 ) -> actix_web::Result<impl actix_web::Responder> {
     let user_info = {
-        if path.user_id.is_nil() {
-            user
-        } else {
-            if !user.has_permission_one_of(vec!["view_users", "*_users", "administrator"]) {
-                return Err(error::ErrorForbidden(ErrorResponse {
+        if !user.has_permission_one_of(vec!["view_users", "*_users", "administrator"]) {
+            return Err(error::ErrorForbidden(ErrorResponse {
+                status: "error".to_string(),
+                error: "missing_permissions".to_string(),
+            }));
+        }
+        match User::get(path.user_id, &db).await {
+            Ok(u) => u,
+            Err(e) => {
+                return Err(error::ErrorNotFound(ErrorResponse {
                     status: "error".to_string(),
-                    error: "missing_permissions".to_string(),
-                }));
-            }
-            match User::get(path.user_id, &db).await {
-                Ok(u) => u,
-                Err(e) => {
-                    return Err(error::ErrorNotFound(ErrorResponse {
-                        status: "error".to_string(),
-                        error: e,
-                    }))
-                }
+                    error: e,
+                }))
             }
         }
     };
@@ -326,5 +327,8 @@ pub fn configure_na(cfg: &mut web::ServiceConfig) {
 }
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(user_info).service(user_list).service(edit_user);
+    cfg.service(user_info)
+        .service(user_list)
+        .service(edit_user)
+        .service(me);
 }
