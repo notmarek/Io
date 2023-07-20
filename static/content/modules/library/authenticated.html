@@ -21,6 +21,16 @@
             import { available_icons } from "/content/consts.js";
             import { library, get_info } from "/content/api_client.js";
             let library_id = "##library_id##";
+			function formatBytes(a, b = 2) {
+    			if (0 === a) return "0 Bytes";
+    				const c = 0 > b ? 0 : b,
+        		d = Math.floor(Math.log(a) / Math.log(1024));
+    			return (
+        			parseFloat((a / Math.pow(1024, d)).toFixed(c)) +
+        			" " +
+        			["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"][d]
+    			);
+			};
             export const run = async () => {
                 let blueprint = document.getElementById("blueprint");
                 let grid = document.getElementByGId("grid");
@@ -30,7 +40,7 @@
                 // document.getElementById("libraryPath").innerText =
                 //     lib.library_info.path;
                 let root_file = lib.root_file;
-                for (const entry of lib.files) {
+				for (const entry of lib.files.sort((a,b) => a.path > b.path)) {
                     console.log(entry);
                     if (entry.parent !== root_file.id) continue;
                     let icon = entry.folder
@@ -42,13 +52,13 @@
 					item.id = null;
                     item.style = null;
                     item.href =
-						(entry.folder ? "/folder/" : `${(await get_info()).storage}/`) + entry.id + (entry.folder || `?t=${localStorage.getItem("file_token")}`);
+						(entry.folder ? "/folder/" : `${(await get_info()).storage}/`) + entry.id + (entry.folder ? "" : `?t=${localStorage.getItem("file_token")}`);
                     item.querySelector(
                         "svg"
                     ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
                     item.querySelector(".item-title>span").innerText =
                         entry.title;
-                    item.querySelector(".item-size").innerText = entry.size;
+                    item.querySelector(".item-size").innerText = formatBytes(entry.size);
                     item.querySelector(".item-time").innerText =
                         new Date(entry.last_update);
                     grid.appendChild(item);

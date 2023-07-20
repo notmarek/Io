@@ -16,7 +16,7 @@ export const ThemeManager = {
 	},
 	_css: null,
 	get css() { return this._css },
-	set css(val) { this._css = val; this.styleEl.innerHTML = val; },
+	set css(val) { this._css = val; this.styleEl.innerHTML = val; document.querySelector("meta[name='theme-color']").content = this.style.accentColor; },
 	export(version) {
 		let versions = {
 			v1: () => {

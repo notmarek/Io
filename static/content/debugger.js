@@ -12,7 +12,7 @@ export const dbgr = async (path, self, renderModule, log) => {
     hits: <span id="dbgr-cache-hits">null</span>
     misses: <span id="dbgr-cache-misses">null</span>
     invalid: <span id="dbgr-cache-inv">0</span>`;
-    let set_og = window.session.set;
+	container.hidden = 1;
     let cache_hits = 0;
     let cache_misses = 0;
 	after_hook(window.session, "set", (k, v) => { log("session.set", `Set '${k}' to '${v}'`);
@@ -31,6 +31,10 @@ export const dbgr = async (path, self, renderModule, log) => {
 	after_hook(localStorage, "getItem", (k, res) => log("localStorage.getItem", `Get '${k}' - value: '${res}'`), true);
 	before_hook(localStorage, "clear", () => log("localStorage.clear", `Clear.`), true);
 	before_hook(localStorage, "removeItem", (k) => log("localStorage.removeItem", `Remove ${k}`), true);
+	before_hook(window.ThemeManager, "inject", function (el) { log("ThemeManager.inject", `Injecting custom css variables into ${el || document.head}`) });
+	before_hook(window.ThemeManager, "init", () => log("ThemeManager.init", "Initializing ThemeManager"));
+	before_hook(window.ThemeManager, "compile", () => log("ThemeManager.compile", "Compiling style object into CSS"));
+   		
 
 	
 	let renderModule_og = renderModule;
@@ -43,7 +47,7 @@ export const dbgr = async (path, self, renderModule, log) => {
         document.getElementById("dbgr-num-modules").innerHTML =
             document.querySelectorAll("[module]").length;
     };
-    let interval = setInterval(modules_num, 300);
+    let interval = null;
     container.onclick = (e) => (
         (log("dbgr", "Hiding debugger")), (container.hidden = 1), clearInterval(interval)
     );
@@ -65,3 +69,4 @@ const after_hook = (context, fn_name, after, proto = false) => {
 	let replace = proto ? context.__proto__ : context;
 	replace[fn_name] = (...args) => { const res = fn_og.apply(context, args); after.apply(context, [...args, res]); return res; };
 }
+

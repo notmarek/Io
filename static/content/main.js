@@ -1,25 +1,35 @@
 import { submit, navigate, token, self, save_tokens_from_response } from "./api.js";
 import { get_info, user } from "./api_client.js";
 import { ThemeManager } from "./theme.js";
-let DEBUG = true;
-
+let DEBUG = location.search.includes("?debug");
 window.submit = submit;
 export let path = window.location.pathname;
 window.addEventListener("popstate", () => {
     path = window.location.pathname;
     router();
 });
-window.addEventListener(`click`, (e) => {
+window.addEventListener(`click`, async (e) => {
     const origin = e.target.closest(`a`);
-    if (origin && origin.href && !origin.href.startsWith(/http:\/\/|https:\/\//)) {
+	if (origin && origin.href) {
         e.preventDefault();
-        navigate(origin.href);
-        log("Navigation", `Soft navigating to ${origin.href}.`);
+		if (origin.href.includes((await get_info()).storage)){
+			log("LinkDetour", `Attempting to copy '${origin.href}' to the clipboard.`);
+			if (navigator.clipboard)
+				navigator.clipboard.writeText(origin.href);
+			else 
+				error("LinkDetour", `Couldn't copy to clipboard, clipboard api not available!`);
+			return false;		
+		}
+        navigate(origin.href + (DEBUG ? "?debug" : ""));
+        log("LinkDetour", `Soft navigating to ${origin.href}.`);
         return false;
     }
 });
-const log = (src, msg) => {
-	return console.log.bind(console, `%c[${src}]`, `color: ${window.ThemeManager.style.accentColor}`)(msg);
+const error = (src, msg) => {
+	log(`${src}:Error`, msg, "#F00");
+}
+const log = (src, msg, text_color = null) => {
+	return console.log(`%c[${src}] %c${msg}`,  `color: ${window.ThemeManager.style.accentColor}`, `color: ${text_color || window.ThemeManager.style.primaryTextColor }`);
 }
 
 /**
@@ -202,18 +212,16 @@ const router = () => {
     }
 };
 
-const setup_theme_manager = () => {
-	window.ThemeManager = ThemeManager;
-	window.ThemeManager.init();
-};
-setup_theme_manager();
+window.ThemeManager = ThemeManager;
 setup_storage();
 if (DEBUG) {
 	const { dbgr } = await import("./debugger.js");
 	renderModule = (await dbgr(path, self, renderModule, log)).renderModule;
 } else {
-	console.log = { bind(...a){return (...a) => {}}};
+	console.log = () => null;
+	window.showDbgr = () => null;
 }
+window.ThemeManager.init();
 if (localStorage.getItem("refresh_token")) 
 	user.refresh_token(localStorage.getItem("refresh_token")).then(res => {	
 		if (res.status !== "error")
