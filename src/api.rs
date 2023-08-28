@@ -4,6 +4,7 @@ use actix_web_httpauth::middleware::HttpAuthentication;
 pub mod file;
 pub mod info;
 pub mod library;
+pub mod search;
 pub mod user;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
@@ -14,7 +15,8 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
             .wrap(Compat::new(auth))
             .configure(user::configure)
             .configure(library::configure)
-            .configure(file::configure),
+            .configure(file::configure)
+            .configure(search::configure),
     );
 }
 

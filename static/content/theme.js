@@ -8,11 +8,12 @@ export const ThemeManager = {
 		secondaryTextColor: "#a7a7a7",
 		primaryLinkColor: "#ffffff",
 		secondaryLinkColor: "#5c5c5c",
+		secondaryBackgroundColor: "#1e1e1e",
 	},
 	get style() { return this._style },
 	set style(val) { for (const x in val) localStorage.setItem("theme." + x, val[x]);return this._style = val; },
 	serializeMaps: {
-		v1: { accentColor: "a", backgroundColor: "b", primaryTextColor: "pt", secondaryTextColor: "st", primaryLinkColor: "pl", secondaryLinkColor: "sl" },
+		v1: { accentColor: "a", backgroundColor: "b", primaryTextColor: "pt", secondaryTextColor: "st", primaryLinkColor: "pl", secondaryLinkColor: "sl", secondaryBackgroundColor: "sb" },
 	},
 	_css: null,
 	get css() { return this._css },

@@ -6,7 +6,7 @@ export const dbgr = async (path, self, renderModule, log) => {
     container.innerHTML = `[Server] host: ${location.host}
     <br>[User] username: ${await self.get_username()}
     permissions: ${await self.get_permissions()}
-    <br>[Modules] main: <span id="dbgr-path">${path}</span>
+    <br>[Modules] last: <span id="dbgr-path">${path}</span>
     rendered: <span id="dbgr-num-modules">null</span>
     <br>[Cache] objects: <span id="dbgr-cache-size">null</span>
     hits: <span id="dbgr-cache-hits">null</span>

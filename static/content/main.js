@@ -1,13 +1,45 @@
 import { submit, navigate, token, self, save_tokens_from_response } from "./api.js";
 import { get_info, user } from "./api_client.js";
 import { ThemeManager } from "./theme.js";
-let DEBUG = location.search.includes("?debug");
+let DEBUG = location.search.includes("?debug") || ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+window.renderState = {
+	currently_rendered_views: {}, // { dom_id: view_name }
+	current_view_variables: {},
+	render(view, dom_id, vars = {}) {
+		renderModule(view, dom_id, vars);
+		this.current_view_variables[dom_id] = Object.keys(vars).length === 0 ? null : vars;
+		if (!this.is_being_rendered(view, dom_id))
+			this.currently_rendered_views[dom_id] = view;
+	},
+	is_being_rendered(view, dom_id) {
+		return this.currently_rendered_views.hasOwnProperty(dom_id) && this.currently_rendered_views[dom_id] === view;
+	},
+	unrender(dom_id) {
+		this.current_view_variables[dom_id] = null;
+		this.currently_rendered_views[dom_id] = null;	
+		document.querySelector(dom_id).innerHTML = null;
+	},
+	
+}
+
 window.submit = submit;
 export let path = window.location.pathname;
 window.addEventListener("popstate", () => {
     path = window.location.pathname;
     router();
 });
+window.onkeydown = (e) => {
+    if (e.ctrlKey && e.keyCode === 70 && !renderState.is_being_rendered("search/overlay", "#overlay"))
+	{
+		e.preventDefault();
+		renderState.render("search/overlay", "#overlay");
+	}
+	if (e.keyCode === 27) {
+		renderState.unrender("#overlay");
+	}
+	return true;
+}
 window.addEventListener(`click`, async (e) => {
     const origin = e.target.closest(`a`);
 	if (origin && origin.href) {
@@ -20,6 +52,8 @@ window.addEventListener(`click`, async (e) => {
 				error("LinkDetour", `Couldn't copy to clipboard, clipboard api not available!`);
 			return false;		
 		}
+		if (renderState.is_being_rendered("search/overlay", "#overlay"))
+			renderState.unrender("#overlay")
         navigate(origin.href + (DEBUG ? "?debug" : ""));
         log("LinkDetour", `Soft navigating to ${origin.href}.`);
         return false;
@@ -140,58 +174,58 @@ const router = () => {
         "/": async () => {
             if (token()) {
                 if (!(await self.get_permissions()).includes("verified")) {
-                    renderModule("home/unverified", "#main");
+                    renderState.render("home/unverified", "#main");
                 } else {
-                    renderModule("home/authenticated", "#main");
+                    renderState.render("home/authenticated", "#main");
                 }
             } else {
-                renderModule("home/unauthenticated", "#main");
+                renderState.render("home/unauthenticated", "#main");
             }
         },
         "/help": () => {
             document.body.innerHTML = "go fuck yourself";
         },
         "/user/login": () => {
-            renderModule("user/login", "#main");
+            renderState.render("user/login", "#main");
         },
         "/user/logout": () => {
             localStorage.clear();
             navigate("/");
         },
         "/user/register": () => {
-            renderModule("user/register", "#main");
+            renderState.render("user/register", "#main");
         },
         "/user/settings": () => {
-            renderModule("user/settings", "#main");
+            renderState.render("user/settings", "#main");
         },
 		"/admin": () => {
-			renderModule("admin/index", "#main");
+			renderState.render("admin/index", "#main");
 		},
         "/admin/library": () => {
             // TODO: don't let everyone in here :)
-            renderModule("admin/library/manage", "#main");
+            renderState.render("admin/library/manage", "#main");
         },
         "/admin/library/create": () => {
             // TODO: don't let everyone in here :)
-            renderModule("admin/library/create", "#main");
+            renderState.render("admin/library/create", "#main");
         },
 		"/admin/user": () => {
-			renderModule("admin/user/all", "#main");
+			renderState.render("admin/user/all", "#main");
 		},
     };
     const smartRoutes = {
         "/library/(?<library_id>.*?)$": ({ library_id }) => {
-            renderModule("library/authenticated", "#main", { library_id });
+            renderState.render("library/authenticated", "#main", { library_id });
         },
         "/folder/(?<folder_id>.*?)$": ({ folder_id }) => {
-            renderModule("folder/authenticated", "#main", { folder_id });
+            renderState.render("folder/authenticated", "#main", { folder_id });
         },
 		"/admin/user/(?<user_id>.*?)$": ({ user_id }) => {
-			renderModule("admin/user/edit", "#main", { user_id });
+			renderState.render("admin/user/edit", "#main", { user_id });
 		},
     };
-    if (token()) renderModule("header/authenticated", "#header div.buttons");
-    else renderModule("header/unauthenticated", "#header div.buttons");
+    if (token()) renderState.render("header/authenticated", "#header div.buttons");
+    else renderState.render("header/unauthenticated", "#header div.buttons");
 
     let fn = simpleRoutes[path];
     if (fn != undefined) {
@@ -208,7 +242,7 @@ const router = () => {
 			}
         }
 		log("Router", `No route found for '${path}' returning 404`);
-		return renderModule("misc/404", "#main");
+		return renderState.render("misc/404", "#main");
     }
 };
 

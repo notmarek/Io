@@ -69,6 +69,11 @@ export const library = {
 
 };
 
+export const search = {
+	search: async (query) =>
+		await http.post(`/api/search`, { json: { query } }).json(),
+}
+
 export const file = {
     get: async (id) =>
         window.session.get(`file-${id}`) ||

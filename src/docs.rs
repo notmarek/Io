@@ -19,6 +19,7 @@ use utoipa::{
         api::library::delete_library,
         api::info::info,
         api::file::file,
+        api::search::search,
     ),
     components(
         schemas(

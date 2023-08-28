@@ -1,0 +1,31 @@
+<div module>
+	<input id="input" class="huge-fucking-input" type="text" placeholder="What are you looking for?"/>
+	<div id="search-results" class="search-results">
+	</div>
+</div>
+<script type="module">
+	export const run = async () => {
+		let input = document.getElementById("input");
+		input.focus();
+		const doneTyping = (submit = false) => {
+			if (input.value.length > 3 || (input.value.length > 0 && submit))
+				renderState.render("search/results", "#search-results", {query: input.value});	
+		}
+		
+		let typingTimer;
+		let doneTypingInterval = 750;
+		input.onchange = () => {
+			doneTyping(true);
+			clearTimeout(typingTimer);
+		};
+		input.onkeyup = () => {
+  			clearTimeout(typingTimer);
+  			typingTimer = setTimeout(doneTyping, doneTypingInterval);
+		};
+		input.onkeydown = () => {
+			clearTimeout(typingTimer);
+		};
+		
+	}
+</script>
+

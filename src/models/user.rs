@@ -86,7 +86,8 @@ impl UserActions for user::Model {
             Ok(Some(u)) => u,
             _ => return false,
         };
-        !user.has_permission_one_of(vec!["banned"]) && user.has_permission_one_of(vec!["verified", "administrator"])
+        !user.has_permission_one_of(vec!["banned"])
+            && user.has_permission_one_of(vec!["verified", "administrator"])
     }
     async fn get(uuid: Uuid, db: &DatabaseConnection) -> Result<user::Model, String> {
         match User::find_by_id(uuid).one(db).await {

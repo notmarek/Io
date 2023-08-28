@@ -25,7 +25,12 @@ impl MigrationTrait for Migration {
                     .table(User::Table)
                     .if_not_exists()
                     .col(ColumnDef::new(User::Id).uuid().not_null().primary_key())
-                    .col(ColumnDef::new(User::Username).string().unique_key().not_null())
+                    .col(
+                        ColumnDef::new(User::Username)
+                            .string()
+                            .unique_key()
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(User::Password).string().not_null())
                     .col(ColumnDef::new(User::Permissions).string().not_null())
                     .to_owned(),

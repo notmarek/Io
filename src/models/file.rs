@@ -23,6 +23,7 @@ pub trait FileActions {
     async fn scan(&mut self, db: &DatabaseConnection);
     async fn get_folder_content(&self, db: &DatabaseConnection)
         -> Result<Vec<file::Model>, String>;
+    async fn search(query: String, db: &DatabaseConnection) -> Result<Vec<file::Model>, String>;
 }
 
 #[async_trait]
@@ -48,7 +49,7 @@ impl FileActions for file::Model {
                     // parent_file_id,
                     path,
                     folder,
-                    last_update:  chrono::NaiveDateTime::from_timestamp_opt(0, 1).unwrap(),
+                    last_update: chrono::NaiveDateTime::from_timestamp_opt(0, 1).unwrap(),
                     ..Default::default()
                 }
                 .into();
@@ -74,6 +75,17 @@ impl FileActions for file::Model {
         {
             Ok(Some(f)) => Ok(f),
             Ok(None) => Err("No entry in db".to_string()),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    async fn search(query: String, db: &DatabaseConnection) -> Result<Vec<file::Model>, String> {
+        match File::find()
+            .filter(file::Column::Title.contains(&query))
+            .all(db)
+            .await
+        {
+            Ok(f) => Ok(f),
             Err(e) => Err(e.to_string()),
         }
     }
