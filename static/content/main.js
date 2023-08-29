@@ -16,8 +16,10 @@ window.renderState = {
 		return this.currently_rendered_views.hasOwnProperty(dom_id) && this.currently_rendered_views[dom_id] === view;
 	},
 	unrender(dom_id) {
-		this.current_view_variables[dom_id] = null;
-		this.currently_rendered_views[dom_id] = null;	
+		for (const k of Object.keys(renderState.currently_rendered_views).filter(e => e.startsWith("#overlay"))) {
+			delete this.current_view_variables[k];
+			delete this.currently_rendered_views[k];	
+		}
 		document.querySelector(dom_id).innerHTML = null;
 	},
 	
@@ -158,6 +160,7 @@ export let renderModule = (module_path, dom_id, variables = null) => {
                     "console.log",
                     `console.log.bind(console, "%c[Modules/${module_path}]", "color: ${window.ThemeManager.style.accentColor}")`
                 );
+				mutated = mutated.replaceAll(/render\((.*?), (.)/g, `render($1, $2${dom_id} `);
                 const blob = new Blob([mutated], {
                     type: "application/javascript",
                 });

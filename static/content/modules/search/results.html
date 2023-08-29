@@ -12,6 +12,12 @@
             <div class="item-size">-</div>
     	    <div class="item-time">-</div>
     </a>
+	<h1 id="trysearching" hidden>
+		Try searching :)
+	</h1>
+	<h1 id="noresults" hidden>
+		No results found...
+	</h1>
 </div>
 
 <script>
@@ -29,9 +35,11 @@
 	  );
   };
   export const run = async () => {
+	  if (query === "^^empty^^") return document.querySelector("#trysearching").removeAttribute("hidden");
 	  let blueprint = document.getElementById("blueprint");
 	  let grid = document.getElementById("search-results");
 	  let lib = (await search.search(query)).data;
+	  if (lib.length === 0) document.querySelector("#noresults").removeAttribute("hidden");
 	  for (const entry of lib.sort((a,b) => a.path > b.path)) {
 		  let icon = entry.folder ? "Folder.svg"
                         : available_icons[

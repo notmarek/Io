@@ -6,6 +6,7 @@
 <script type="module">
 	export const run = async () => {
 		let input = document.getElementById("input");
+		renderState.render("search/results", "#search-results", {query: "^^empty^^"});
 		input.focus();
 		const doneTyping = (submit = false) => {
 			if (input.value.length > 3 || (input.value.length > 0 && submit))
