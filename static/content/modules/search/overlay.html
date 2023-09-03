@@ -9,15 +9,18 @@
 		renderState.render("search/results", "#search-results", {query: "^^empty^^"});
 		input.focus();
 		const doneTyping = (submit = false) => {
+			if (last_entry === input.value) return;
+			last_entry = input.value;
 			if (input.value.length > 3 || (input.value.length > 0 && submit))
 				renderState.render("search/results", "#search-results", {query: input.value});	
 		}
 		
+		let last_entry;
 		let typingTimer;
 		let doneTypingInterval = 750;
 		input.onchange = () => {
-			doneTyping(true);
 			clearTimeout(typingTimer);
+			doneTyping(true);
 		};
 		input.onkeyup = () => {
   			clearTimeout(typingTimer);

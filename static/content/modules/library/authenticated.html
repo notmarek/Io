@@ -1,9 +1,10 @@
 <div class="bigaf" module>
-    <h1 class="primary" id="libraryName"></h1>
-    <h2 class="secondary" id="libraryPath"></h2>
-    <div idg="grid">
+    <h1 class="primary" id="libraryName" hidden></h1>
+    <h2 class="secondary" id="libraryPath" hidden></h2>
+	<span class="loader"></span>
+    <div idg="grid" hidden>
         <!-- idg is a global id that won't be transformed -->
-        <a style="display: none" id="blueprint" href="#" class="item">
+        <a href="#" class="item">
             <div class="item-title">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -32,16 +33,14 @@
     			);
 			};
             export const run = async () => {
-                let blueprint = document.getElementById("blueprint");
+                let blueprint = document.querySelector("%%grid a.item");
                 let grid = document.getElementByGId("grid");
+				let loader = document.querySelector(".bigaf .loader");
                 let lib = (await library.get(library_id)).data;
                 document.getElementById("libraryName").innerText =
                     lib.library_info.name;
-                // document.getElementById("libraryPath").innerText =
-                //     lib.library_info.path;
                 let root_file = lib.root_file;
 				for (const entry of lib.files.sort((a,b) => a.path > b.path)) {
-                    console.log(entry);
                     if (entry.parent !== root_file.id) continue;
                     let icon = entry.folder
                         ? "Folder.svg"
@@ -49,8 +48,6 @@
                               entry.path.split(".").pop().toLowerCase()
                           ] || "File.svg";
                     let item = blueprint.cloneNode(true);
-					item.id = null;
-                    item.style = null;
                     item.href =
 						(entry.folder ? "/folder/" : `${(await get_info()).storage}/`) + entry.id + (entry.folder ? "" : `?t=${localStorage.getItem("file_token")}`);
                     item.querySelector(
@@ -63,6 +60,10 @@
                         new Date(entry.last_update);
                     grid.appendChild(item);
                 }
+				blueprint.remove();	
+				loader.remove();
+				grid.removeAttribute("hidden");
+				document.getElementById("libraryName").removeAttribute("hidden");
             };
         </script>
     </div>
