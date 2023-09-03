@@ -56,7 +56,7 @@ pub async fn scan_file(file_path: &Path) -> Result<File, String> {
                     .unwrap_or_default()
             );
             Ok(File {
-                last_update: chrono::NaiveDateTime::from_timestamp(
+                last_update: chrono::NaiveDateTime::from_timestamp_opt(
                     metadata
                         .modified()
                         .unwrap()
@@ -64,7 +64,8 @@ pub async fn scan_file(file_path: &Path) -> Result<File, String> {
                         .map_err(|e| e.to_string())?
                         .as_secs() as i64,
                     0,
-                ),
+                )
+                .unwrap_or_default(),
                 title: elements
                     .get(anitomy::ElementCategory::AnimeTitle)
                     .map(|e| e.to_string()),

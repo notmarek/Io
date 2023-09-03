@@ -1,7 +1,4 @@
-use crate::{
-    models::file::FileActions,
-    Response, VerifiedAuthData,
-};
+use crate::{models::file::FileActions, Response, VerifiedAuthData};
 use actix_web::{error::ErrorInternalServerError, post};
 use actix_web::{web, HttpResponse};
 use entity::file::Model as File;
