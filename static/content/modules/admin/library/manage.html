@@ -1,58 +1,52 @@
 <div class="bigaf" module>
-    <h1 class="primary">Library management</h1>
-    <div style="margin-bottom: 1.5em;">
-        <a class="btn primary" href="/admin/library/create">New library</a>
-        <a class="btn secondary">Scan all</a>
+  <h1 class="primary">Library management</h1>
+  <div style="margin-bottom: 1.5em">
+    <a class="btn primary" href="/admin/library/create">New library</a>
+    <a class="btn secondary">Scan all</a>
+  </div>
+  <div idg="grid">
+    <div style="display: none" id="blueprint" class="item">
+      <div class="item-title">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 50 50"
+          width="1.5em"
+          height="1.5em"
+        >
+          <use fill="currentColor" href="/content/imgs/Folder.svg#img"></use>
+        </svg>
+        <span id="inner">-</span>
+      </div>
+      <div class="scan" style="cursor: pointer">Scan this bitch</div>
+      <div class="delete" style="cursor: pointer">Delete this bitch</div>
     </div>
-    <div idg="grid">
-        <div style="display: none" id="blueprint" class="item">
-            <div class="item-title">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 50 50"
-                    width="1.5em"
-                    height="1.5em"
-                >
-                    <use
-                        fill="currentColor"
-                        href="/content/imgs/Folder.svg#img"
-                    ></use>
-                </svg>
-                <span id="inner">-</span>
-            </div>
-            <div class="scan" style="cursor: pointer">Scan this bitch</div>
-            <div class="delete" style="cursor: pointer">Delete this bitch</div>
-        </div>
 
-        <script type="module">
-            import { library } from "/content/api_client.js";
-            export const run = async () => {
-                let blueprint = document.getElementById("blueprint");
-                let grid = document.getElementByGId("grid");
-                let libraries = (await library.all()).data;
-                for (const entry of libraries) {
-                    console.log(entry);
-                    let item = blueprint.cloneNode(true);
-                    item.querySelector(".item-title>span#inner").innerText =
-                        entry.name;
-                    item.querySelector(".scan").title = new Date(
-                        entry.last_scan
-                    );
-                    item.querySelector(".scan").onclick = async (e) => {
-                        let res = await library.scan(entry.id);
-                        e.target.innerText = res.data;
-                    };
-		    item.querySelector(".delete").onclick = async (e) => {
-		    	if (!confirm("Are you sure you want to delete the library?")) 
-				return;
-			let res = await library.delete(entry.id);
-			console.log(res);
-			item.hidden = true;			
-		    };
-		    item.style = null;
-                    grid.appendChild(item);
-                }
-            };
-        </script>
-    </div>
+    <script type="module">
+      import { library } from "/content/api_client.js";
+      export const run = async () => {
+        let blueprint = document.getElementById("blueprint");
+        let grid = document.getElementByGId("grid");
+        let libraries = (await library.all()).data;
+        for (const entry of libraries) {
+          console.log(entry);
+          let item = blueprint.cloneNode(true);
+          item.querySelector(".item-title>span#inner").innerText = entry.name;
+          item.querySelector(".scan").title = new Date(entry.last_scan);
+          item.querySelector(".scan").onclick = async (e) => {
+            let res = await library.scan(entry.id);
+            e.target.innerText = res.data;
+          };
+          item.querySelector(".delete").onclick = async (e) => {
+            if (!confirm("Are you sure you want to delete the library?"))
+              return;
+            let res = await library.delete(entry.id);
+            console.log(res);
+            item.hidden = true;
+          };
+          item.style = null;
+          grid.appendChild(item);
+        }
+      };
+    </script>
+  </div>
 </div>

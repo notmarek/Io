@@ -1,35 +1,41 @@
 <div module>
-	<input id="input" class="huge-fucking-input" type="text" placeholder="What are you looking for?"/>
-	<div id="search-results" class="search-results">
-	</div>
+  <input
+    id="input"
+    class="huge-fucking-input"
+    type="text"
+    placeholder="What are you looking for?"
+  />
+  <div id="search-results" class="search-results"></div>
 </div>
 <script type="module">
-	export const run = async () => {
-		let input = document.getElementById("input");
-		renderState.render("search/results", "#search-results", {query: "^^empty^^"});
-		input.focus();
-		const doneTyping = (submit = false) => {
-			if (last_entry === input.value) return;
-			last_entry = input.value;
-			if (input.value.length > 3 || (input.value.length > 0 && submit))
-				renderState.render("search/results", "#search-results", {query: input.value});	
-		}
-		
-		let last_entry;
-		let typingTimer;
-		let doneTypingInterval = 750;
-		input.onchange = () => {
-			clearTimeout(typingTimer);
-			doneTyping(true);
-		};
-		input.onkeyup = () => {
-  			clearTimeout(typingTimer);
-  			typingTimer = setTimeout(doneTyping, doneTypingInterval);
-		};
-		input.onkeydown = () => {
-			clearTimeout(typingTimer);
-		};
-		
-	}
-</script>
+  export const run = async () => {
+    let input = document.getElementById("input");
+    renderState.render("search/results", "#search-results", {
+      query: "^^empty^^",
+    });
+    input.focus();
+    const doneTyping = (submit = false) => {
+      if (last_entry === input.value) return;
+      last_entry = input.value;
+      if (input.value.length > 3 || (input.value.length > 0 && submit))
+        renderState.render("search/results", "#search-results", {
+          query: input.value,
+        });
+    };
 
+    let last_entry;
+    let typingTimer;
+    let doneTypingInterval = 750;
+    input.onchange = () => {
+      clearTimeout(typingTimer);
+      doneTyping(true);
+    };
+    input.onkeyup = () => {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    };
+    input.onkeydown = () => {
+      clearTimeout(typingTimer);
+    };
+  };
+</script>

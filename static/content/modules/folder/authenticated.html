@@ -1,67 +1,66 @@
 <div class="bigaf" module>
-    <a class="primary" id="libraryName" hidden><h2></h2></a>
-    <h2 class="secondary" id="libraryPath" hidden></h2>
-	<span class="loader"></span>
-    <div idg="grid" hidden>
-        <!-- idg is a global id that won't be transformed -->
-        <a href="#" class="item">
-            <div class="item-title">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 50 50"
-                    width="1.5em"
-                    height="1.5em"
-                ></svg>
-                <span>-</span>
-            </div>
-            <div class="item-size">-</div>
-            <div class="item-time">-</div>
-        </a>
+  <a class="primary" id="libraryName" hidden><h2></h2></a>
+  <h2 class="secondary" id="libraryPath" hidden></h2>
+  <span class="loader"></span>
+  <div idg="grid" hidden>
+    <!-- idg is a global id that won't be transformed -->
+    <a href="#" class="item">
+      <div class="item-title">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 50 50"
+          width="1.5em"
+          height="1.5em"
+        ></svg>
+        <span>-</span>
+      </div>
+      <div class="item-size">-</div>
+      <div class="item-time">-</div>
+    </a>
 
-        <script type="module">
-            import { file, library, get_info } from "/content/api_client.js";
-            import { available_icons } from "/content/consts.js";
-            let folder_id = "##folder_id##";
-            export const run = async () => {
-                let blueprint = document.querySelector("%%grid a.item");
-                let grid = document.getElementByGId("grid");
-				let loader = document.querySelector(".bigaf .loader");
-                let folder = (await file.get(folder_id)).data;
-                let lib = (await library.get(folder.folder.library_id)).data;
-                document.querySelector("#libraryName h2").innerText =
-                    lib.library_info.name;
-                document.getElementById("libraryName").href =
-                    "/library/" + lib.library_info.id;
-                document.getElementById("libraryPath").innerText =
-                    folder.folder.path;
-                for (const entry of folder.children) {
-                    console.log(entry);
-                    if (entry.parent != folder.folder.id) continue;
-                    let icon = entry.folder
-                        ? "Folder.svg"
-                        : available_icons[
-                              entry.path.split(".").pop().toLowerCase()
-                          ] || "File.svg";
-                    let item = blueprint.cloneNode(true);
-                    item.href =
-						(entry.folder ? "/folder/" : `${(await get_info()).storage}/`) + entry.id + (entry.folder ? "" : `?t=${localStorage.getItem("file_token")}`);
-                    item.querySelector(
-                        "svg"
-                    ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
-                    item.querySelector(".item-title>span").innerText =
-                        entry.title;
-                    item.querySelector(".item-size").innerText = entry.size;
-                    item.querySelector(".item-time").innerText = new Date(
-                        entry.last_update
-                    );
-                    grid.appendChild(item);
-                }
-				blueprint.remove();
-				loader.remove(); 
-				document.getElementById("libraryName").removeAttribute("hidden");
-				document.getElementById("libraryPath").removeAttribute("hidden");
-				grid.removeAttribute("hidden");
-            };
-        </script>
-    </div>
+    <script type="module">
+      import { file, library, get_info } from "/content/api_client.js";
+      import { available_icons } from "/content/consts.js";
+      let folder_id = "##folder_id##";
+      export const run = async () => {
+        let blueprint = document.querySelector("%%grid a.item");
+        let grid = document.getElementByGId("grid");
+        let loader = document.querySelector(".bigaf .loader");
+        let folder = (await file.get(folder_id)).data;
+        let lib = (await library.get(folder.folder.library_id)).data;
+        document.querySelector("#libraryName h2").innerText =
+          lib.library_info.name;
+        document.getElementById("libraryName").href =
+          "/library/" + lib.library_info.id;
+        document.getElementById("libraryPath").innerText = folder.folder.path;
+        for (const entry of folder.children) {
+          console.log(entry);
+          if (entry.parent != folder.folder.id) continue;
+          let icon = entry.folder
+            ? "Folder.svg"
+            : available_icons[entry.path.split(".").pop().toLowerCase()] ||
+              "File.svg";
+          let item = blueprint.cloneNode(true);
+          item.href =
+            (entry.folder ? "/folder/" : `${(await get_info()).storage}/`) +
+            entry.id +
+            (entry.folder ? "" : `?t=${localStorage.getItem("file_token")}`);
+          item.querySelector(
+            "svg",
+          ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
+          item.querySelector(".item-title>span").innerText = entry.title;
+          item.querySelector(".item-size").innerText = entry.size;
+          item.querySelector(".item-time").innerText = new Date(
+            entry.last_update,
+          );
+          grid.appendChild(item);
+        }
+        blueprint.remove();
+        loader.remove();
+        document.getElementById("libraryName").removeAttribute("hidden");
+        document.getElementById("libraryPath").removeAttribute("hidden");
+        grid.removeAttribute("hidden");
+      };
+    </script>
+  </div>
 </div>

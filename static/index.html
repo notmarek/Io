@@ -1,33 +1,36 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" preload href="/content/modules/style.css">
-    <meta name="theme-color" content="#ff0069">
-	<meta name="description" content="Some kind of library software">	
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" preload href="/content/modules/style.css" />
+    <meta name="theme-color" content="#ff0069" />
+    <meta name="description" content="Some kind of library software" />
     <title>io</title>
     <style id="default-theme">
-	:root { --accent-color: #ff006900;
-		--background-color: #121212;
-		--primary-text-color: #ffffff;
-		--secondary-text-color: #a7a7a7;
-		--primary-link-color: #ffffff;
-		--secondary-link-color: #5c5c5c;
-		--secondary-background-color: #1e1e1e;
- 	}
+      :root {
+        --accent-color: #ff006900;
+        --background-color: #121212;
+        --primary-text-color: #ffffff;
+        --secondary-text-color: #a7a7a7;
+        --primary-link-color: #ffffff;
+        --secondary-link-color: #5c5c5c;
+        --secondary-background-color: #1e1e1e;
+      }
     </style>
-</head>
-<body>
-    <noscript>This website requires JavaScript capable browser to run.</noscript>
+  </head>
+  <body>
+    <noscript
+      >This website requires JavaScript capable browser to run.</noscript
+    >
     <div id="header">
-        <h1 class="logo"><a href="/">Io</a></h1>
-        <div class="buttons"></div>
+      <h1 class="logo"><a href="/">Io</a></h1>
+      <div class="buttons"></div>
     </div>
     <div id="main"></div>
-	<div id="overlay"></div>
-	<div id="prerenderer" hidden></div>
+    <div id="overlay"></div>
+    <div id="prerenderer" hidden></div>
     <script async type="module" src="/content/main.js"></script>
-</body>
+  </body>
 </html>

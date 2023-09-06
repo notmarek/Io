@@ -1,28 +1,32 @@
 <div class="bigaf" module>
-    <h1 class="primary">
-        Create library
-    </h1>
-    <form> 
-        <input id="name" name="name" type="text" placeholder="Library name"/>
-        <input id="path" name="path" type="text" placeholder="Library path"/> 
-        <input id="depth" name="depth" type="number" placeholder="Depth" value="3"/> 
-	<input type="submit" class="btn primary" value="Create Library" />
-    </form>
-    <p idg="error"></p>
+  <h1 class="primary">Create library</h1>
+  <form>
+    <input id="name" name="name" type="text" placeholder="Library name" />
+    <input id="path" name="path" type="text" placeholder="Library path" />
+    <input
+      id="depth"
+      name="depth"
+      type="number"
+      placeholder="Depth"
+      value="3"
+    />
+    <input type="submit" class="btn primary" value="Create Library" />
+  </form>
+  <p idg="error"></p>
 </div>
-<script>	
-            import { library } from "/content/api_client.js";
-	    export const run = () => {
-		    document.querySelector("form").onsubmit = async (event) => {
-			    event.preventDefault();
-			    const name = document.querySelector("#name").value;
-			    const path = document.querySelector("#path").value;
-	                    const depth = Number(document.querySelector("#depth").value);
-			    let res = await library.create(name, path, depth);
-			    console.log(res);
-			    //document.getElementByGId("error").innerText = res.status();
-			    window.session.invalidate("lib-all");
-			    return false;
-		    };
-	    }
+<script>
+  import { library } from "/content/api_client.js";
+  export const run = () => {
+    document.querySelector("form").onsubmit = async (event) => {
+      event.preventDefault();
+      const name = document.querySelector("#name").value;
+      const path = document.querySelector("#path").value;
+      const depth = Number(document.querySelector("#depth").value);
+      let res = await library.create(name, path, depth);
+      console.log(res);
+      //document.getElementByGId("error").innerText = res.status();
+      window.session.invalidate("lib-all");
+      return false;
+    };
+  };
 </script>

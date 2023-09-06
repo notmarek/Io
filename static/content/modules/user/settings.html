@@ -1,52 +1,56 @@
 <div class="bigaf" module>
-    <h1 class="primary">
-        Settings
-    </h1>
-    <form id="settings">
-    </form>
-    <pre>
-    </pre>
-    <style>
-	#settings {
-		text-align: center;
-		align-items: center;
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-	}
-	label {
-		text-shadow: 1px 1px 2px black;
-		padding: 1em;
-		margin: 0.25em;
-		color: white;
-	}
-	label:hover {
-			cursor: pointer;
+  <h1 class="primary">Settings</h1>
+  <form id="settings"></form>
+  <pre></pre>
+  <style>
+    #settings {
+      text-align: center;
+      align-items: center;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
     }
-    </style>
-    <script>
-	    export const run = () => {
-		    let settings = document.querySelector("#settings");
-		    for (const prop in window.ThemeManager.style) {
-			    let label = prop.replaceAll(/([A-Z])/g, (m) => " " + m.toLowerCase());
-			    let labelEl = document.createElement("label");
-			    labelEl.for = prop;
-			    labelEl.innerText = label;
-			    let el = document.createElement("input");
-			    el.hidden = true;
-			    el.type = "color";
-			    el.name = prop;
-			    labelEl.onclick = () => el.click();
-			    labelEl.style.backgroundColor = `var(--${prop.replaceAll(/[A-Z]/g, (m) => "-" + m.toLowerCase())})`;
-			    el.value = window.ThemeManager.style[prop];
-			    el.onchange = () => {
-				    window.ThemeManager.set(prop, el.value);
-				    document.querySelector("pre").innerText = window.ThemeManager.export("v1");
-			    }
-			    document.addEventListener("themeReload", (_) => el.value = window.ThemeManager.style[prop]);
-			    settings.appendChild(labelEl);
-			    settings.appendChild(el);
-			    document.querySelector("pre").innerText = window.ThemeManager.export("v1");
-		    }
-	    }
-    </script>
+    label {
+      text-shadow: 1px 1px 2px black;
+      padding: 1em;
+      margin: 0.25em;
+      color: white;
+    }
+    label:hover {
+      cursor: pointer;
+    }
+  </style>
+  <script>
+    export const run = () => {
+      let settings = document.querySelector("#settings");
+      for (const prop in window.ThemeManager.style) {
+        let label = prop.replaceAll(/([A-Z])/g, (m) => " " + m.toLowerCase());
+        let labelEl = document.createElement("label");
+        labelEl.for = prop;
+        labelEl.innerText = label;
+        let el = document.createElement("input");
+        el.hidden = true;
+        el.type = "color";
+        el.name = prop;
+        labelEl.onclick = () => el.click();
+        labelEl.style.backgroundColor = `var(--${prop.replaceAll(
+          /[A-Z]/g,
+          (m) => "-" + m.toLowerCase(),
+        )})`;
+        el.value = window.ThemeManager.style[prop];
+        el.onchange = () => {
+          window.ThemeManager.set(prop, el.value);
+          document.querySelector("pre").innerText =
+            window.ThemeManager.export("v1");
+        };
+        document.addEventListener(
+          "themeReload",
+          (_) => (el.value = window.ThemeManager.style[prop]),
+        );
+        settings.appendChild(labelEl);
+        settings.appendChild(el);
+        document.querySelector("pre").innerText =
+          window.ThemeManager.export("v1");
+      }
+    };
+  </script>
 </div>

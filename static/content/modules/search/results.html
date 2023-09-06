@@ -1,26 +1,22 @@
 <div module id="search-results">
-	<div id="items" hidden>
-		<a href="#" class="item">
-			<div class="item-title">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 50 50"
-					width="1.5em"
-					height="1.5em"
-					></svg>
-				<span>-</span>
-			</div>
-			<div class="item-size">-</div>
-			<div class="item-time">-</div>
-		</a>
-	</div>
-	<h1 id="trysearching" hidden>
-		Try searching :)
-	</h1>
-	<h1 id="noresults" hidden>
-		No results found...
-	</h1>
-	<span class="loader" hidden></span>
+  <div id="items" hidden>
+    <a href="#" class="item">
+      <div class="item-title">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 50 50"
+          width="1.5em"
+          height="1.5em"
+        ></svg>
+        <span>-</span>
+      </div>
+      <div class="item-size">-</div>
+      <div class="item-time">-</div>
+    </a>
+  </div>
+  <h1 id="trysearching" hidden>Try searching :)</h1>
+  <h1 id="noresults" hidden>No results found...</h1>
+  <span class="loader" hidden></span>
 </div>
 
 <script>
@@ -28,38 +24,45 @@
   import { search, get_info } from "/content/api_client.js";
   let query = "##query##";
   function formatBytes(a, b = 2) {
-	  if (0 === a) return "0 Bytes";
-	  const c = 0 > b ? 0 : b,
-		  d = Math.floor(Math.log(a) / Math.log(1024));
-	  return (
-		  parseFloat((a / Math.pow(1024, d)).toFixed(c)) +
-		  " " +
-		  ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"][d]
-	  );
-  };
+    if (0 === a) return "0 Bytes";
+    const c = 0 > b ? 0 : b,
+      d = Math.floor(Math.log(a) / Math.log(1024));
+    return (
+      parseFloat((a / Math.pow(1024, d)).toFixed(c)) +
+      " " +
+      ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"][d]
+    );
+  }
   export const run = async () => {
-	  if (query === "^^empty^^") return document.querySelector("#trysearching").removeAttribute("hidden");
-	  let loader = document.querySelector("#search-results span.loader");
-	  loader.removeAttribute("hidden");
-	  let blueprint = document.querySelector("#items a");
-	  let grid = document.getElementById("items");
-	  let lib = (await search.search(query)).data;
-	  if (lib.length === 0) document.querySelector("#noresults").removeAttribute("hidden");
-	  for (const entry of lib.sort((a,b) => a.path > b.path)) {
-		  let icon = entry.folder ? "Folder.svg"
-                        : available_icons[
-                              entry.path.split(".").pop().toLowerCase()
-                          ] || "File.svg";
-		  let item = blueprint.cloneNode(true);
-		  item.href = (entry.folder ? "/folder/" : `${(await get_info()).storage}/`) + entry.id + (entry.folder ? "" : `?t=${localStorage.getItem("file_token")}`);
-		  item.querySelector("svg").innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
-		  item.querySelector(".item-title>span").innerText = entry.title;
-          item.querySelector(".item-size").innerText = formatBytes(entry.size);
-		  item.querySelector(".item-time").innerText = new Date(entry.last_update);
-		  grid.appendChild(item);
-	  }
-	  blueprint.remove();
-	  grid.removeAttribute("hidden");
-	  loader.remove();
-    };
+    if (query === "^^empty^^")
+      return document.querySelector("#trysearching").removeAttribute("hidden");
+    let loader = document.querySelector("#search-results span.loader");
+    loader.removeAttribute("hidden");
+    let blueprint = document.querySelector("#items a");
+    let grid = document.getElementById("items");
+    let lib = (await search.search(query)).data;
+    if (lib.length === 0)
+      document.querySelector("#noresults").removeAttribute("hidden");
+    for (const entry of lib.sort((a, b) => a.path > b.path)) {
+      let icon = entry.folder
+        ? "Folder.svg"
+        : available_icons[entry.path.split(".").pop().toLowerCase()] ||
+          "File.svg";
+      let item = blueprint.cloneNode(true);
+      item.href =
+        (entry.folder ? "/folder/" : `${(await get_info()).storage}/`) +
+        entry.id +
+        (entry.folder ? "" : `?t=${localStorage.getItem("file_token")}`);
+      item.querySelector(
+        "svg",
+      ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
+      item.querySelector(".item-title>span").innerText = entry.title;
+      item.querySelector(".item-size").innerText = formatBytes(entry.size);
+      item.querySelector(".item-time").innerText = new Date(entry.last_update);
+      grid.appendChild(item);
+    }
+    blueprint.remove();
+    grid.removeAttribute("hidden");
+    loader.remove();
+  };
 </script>
