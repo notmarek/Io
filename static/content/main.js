@@ -45,15 +45,17 @@ window.addEventListener("popstate", () => {
   path = window.location.pathname;
   router();
 });
+
+/// shortcut handler
 window.onkeydown = (e) => {
   if (
-    e.ctrlKey && e.keyCode === 70 &&
+    e.ctrlKey && e.shiftKey && e.keyCode === 70 && // CTRL + SHIFT + F 
     !renderState.is_being_rendered("search/overlay", "#overlay")
   ) {
     e.preventDefault();
     renderState.render("search/overlay", "#overlay");
   }
-  if (e.keyCode === 27) {
+  if (e.keyCode === 27) { // ESC
     renderState.unrender("#overlay");
   }
   return true;
