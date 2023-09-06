@@ -33,7 +33,19 @@
         document.getElementById("libraryName").href =
           "/library/" + lib.library_info.id;
         document.getElementById("libraryPath").innerText = folder.folder.path;
-        for (const entry of folder.children.sort((a,b) => a.title?.toLowerCase() > b.title?.toLowerCase())) {
+        function formatBytes(a, b = 2) {
+          if (0 === a) return "0 Bytes";
+          const c = 0 > b ? 0 : b,
+            d = Math.floor(Math.log(a) / Math.log(1024));
+          return (
+            parseFloat((a / Math.pow(1024, d)).toFixed(c)) +
+            " " +
+            ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"][d]
+          );
+        }
+        for (const entry of folder.children.sort(
+          (a, b) => a.title?.toLowerCase() > b.title?.toLowerCase(),
+        )) {
           console.log(entry);
           if (entry.parent != folder.folder.id) continue;
           let icon = entry.folder
@@ -49,7 +61,7 @@
             "svg",
           ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
           item.querySelector(".item-title>span").innerText = entry.title;
-          item.querySelector(".item-size").innerText = entry.size;
+          item.querySelector(".item-size").innerText = entry.folder ? "-" : formatBytes(entry.size);
           item.querySelector(".item-time").innerText = new Date(
             entry.last_update,
           );

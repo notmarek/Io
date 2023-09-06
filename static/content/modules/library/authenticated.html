@@ -29,7 +29,7 @@
         return (
           parseFloat((a / Math.pow(1024, d)).toFixed(c)) +
           " " +
-          ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"][d]
+          ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"][d]
         );
       }
       export const run = async () => {
@@ -57,7 +57,7 @@
             "svg",
           ).innerHTML = `<use fill="currentColor" href="/content/imgs/${icon}%%img"></use>`;
           item.querySelector(".item-title>span").innerText = entry.title;
-          item.querySelector(".item-size").innerText = formatBytes(entry.size);
+          item.querySelector(".item-size").innerText = entry.folder ? "-" : formatBytes(entry.size);
           item.querySelector(".item-time").innerText = new Date(
             entry.last_update,
           );
