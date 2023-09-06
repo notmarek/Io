@@ -33,7 +33,7 @@
         document.getElementById("libraryName").href =
           "/library/" + lib.library_info.id;
         document.getElementById("libraryPath").innerText = folder.folder.path;
-        for (const entry of folder.children) {
+        for (const entry of folder.children.sort((a,b) => a.title?.toLowerCase() > b.title?.toLowerCase())) {
           console.log(entry);
           if (entry.parent != folder.folder.id) continue;
           let icon = entry.folder

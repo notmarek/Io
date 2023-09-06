@@ -36,11 +36,13 @@
         let blueprint = document.querySelector("%%grid a.item");
         let grid = document.getElementByGId("grid");
         let loader = document.querySelector(".bigaf .loader");
-        let lib = (await library.get(library_id)).data;
+        let lib = (await library.get(library_id));
+        console.log(lib);
+        lib = lib.data;
         document.getElementById("libraryName").innerText =
           lib.library_info.name;
         let root_file = lib.root_file;
-        for (const entry of lib.files.sort((a, b) => a.path > b.path)) {
+        for (const entry of lib.files.sort((a, b) => a.title?.toLowerCase() > b.title?.toLowerCase())) {
           if (entry.parent !== root_file.id) continue;
           let icon = entry.folder
             ? "Folder.svg"

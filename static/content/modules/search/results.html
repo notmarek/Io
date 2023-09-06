@@ -43,7 +43,7 @@
     let lib = (await search.search(query)).data;
     if (lib.length === 0)
       document.querySelector("#noresults").removeAttribute("hidden");
-    for (const entry of lib.sort((a, b) => a.path > b.path)) {
+    for (const entry of lib.sort((a, b) => a.title?.toLowerCase() > b.title?.toLowerCase())) {
       let icon = entry.folder
         ? "Folder.svg"
         : available_icons[entry.path.split(".").pop().toLowerCase()] ||
