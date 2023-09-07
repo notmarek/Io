@@ -1,0 +1,29 @@
+<div class="alert-wrap">
+  <div
+    class="alert"
+    id="alert"
+    style="color: ##text_color##; background-color: ##bg_color##"
+  >
+    <div class="alert-heading">##heading##</div>
+    <div class="alert-body">##body##</div>
+  </div>
+</div>
+
+<script>
+  let unrenderSelf = () => renderState.unrender("%%alert");
+  export const run = async () => {
+    const timeout = ##timeout##;
+    let timeout_id = setTimeout(unrenderSelf, timeout);
+    let alert = document.querySelector("#alert");
+    alert.onmouseenter = () => {
+      clearTimeout(timeout_id);
+    }
+    alert.onmouseleave = () => {
+      timeout_id = setTimeout(unrenderSelf, timeout);
+    }
+    alert.onclick = () => {
+      clearTimeout(timeout_id);
+      unrenderSelf();
+    }
+  }
+</script>

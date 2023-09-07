@@ -236,3 +236,17 @@ input.huge-fucking-input:focus {
       20px -5px rgba(255, 255, 255, 0);
   }
 }
+.alert-wrap {
+  display: flex;
+  position: fixed;
+  top: 1em;
+  left: 1em;
+}
+.alert {
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+}
+.alert:hover {
+  cursor: pointer;
+}

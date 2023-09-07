@@ -49,7 +49,7 @@ window.addEventListener("popstate", () => {
 /// shortcut handler
 window.onkeydown = (e) => {
   if (
-    e.ctrlKey && e.shiftKey && e.keyCode === 70 && // CTRL + SHIFT + F 
+    e.ctrlKey && e.shiftKey && e.keyCode === 70 && // CTRL + SHIFT + F
     !renderState.is_being_rendered("search/overlay", "#overlay")
   ) {
     e.preventDefault();
@@ -71,10 +71,24 @@ window.addEventListener(`click`, async (e) => {
       );
       if (navigator.clipboard) {
         navigator.clipboard.writeText(origin.href);
+        alert(
+          3000,
+          "Copied to clipboard!",
+          `Link was copied to clipboard!`,
+          ThemeManager.successTextColor,
+          ThemeManager.successColor,
+        );
       } else {
         error(
           "LinkDetour",
           `Couldn't copy to clipboard, clipboard api not available!`,
+        );
+        alert(
+          5000,
+          "Couldn't copy to clipboard!",
+          "navigator.clipboard is unavailable, are you running over https?",
+          ThemeManager.errorTextColor,
+          ThemeManager.errorColor,
         );
       }
       return false;
@@ -113,6 +127,16 @@ function hashCode(str) {
   }
   return hash;
 }
+
+const alert = (timeout, heading, body, text_color, bg_color) => {
+  renderState.render("alert/v01", "#alert", {
+    heading,
+    body,
+    text_color,
+    bg_color,
+    timeout,
+  });
+};
 
 const setup_storage = () => {
   window.session = {

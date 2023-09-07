@@ -9,6 +9,10 @@ export const ThemeManager = {
     primaryLinkColor: "#ffffff",
     secondaryLinkColor: "#5c5c5c",
     secondaryBackgroundColor: "#1e1e1e",
+    successColor: "#32fc65",
+    successTextColor: "#000",
+    errorColor: "#fc323f",
+    errorTextColor: "#fff",
   },
   get style() {
     return this._style;
@@ -26,6 +30,10 @@ export const ThemeManager = {
       primaryLinkColor: "pl",
       secondaryLinkColor: "sl",
       secondaryBackgroundColor: "sb",
+      successColor: "sc",
+      successTextColor: "st",
+      errorColor: "ec",
+      errorTextColor: "et",
     },
   },
   _css: null,
@@ -70,17 +78,21 @@ export const ThemeManager = {
   },
   init(el = null) {
     for (let prop in this.style) {
+      this[prop] = `var(${this.cssifyName(prop)})`;
       this.style[prop] = localStorage.getItem("theme." + prop) ||
         this.style[prop];
     }
     this.inject(el);
     return this.compile();
   },
+  cssifyName(name) {
+    return "--" + name.replaceAll(/[A-Z]/g, (m) => "-" + m.toLowerCase());
+  },
   compile() {
     let css = "";
     for (let prop in this.style) {
       const val = this.style[prop];
-      prop = "--" + prop.replaceAll(/[A-Z]/g, (m) => "-" + m.toLowerCase());
+      prop = this.cssifyName(prop); 
       css += `${prop}: ${val};\n`;
     }
     this.css = `:root { ${css} }`;
