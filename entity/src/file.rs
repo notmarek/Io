@@ -19,7 +19,7 @@ pub struct Model {
     pub season: Option<String>,
     pub episode: Option<i32>,
     pub release_group: Option<String>,
-    pub size: Option<i32>,
+    pub size: Option<u64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
