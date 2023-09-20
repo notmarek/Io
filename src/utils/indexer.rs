@@ -81,7 +81,7 @@ pub async fn scan_file(file_path: &Path) -> Result<File, String> {
                     .get(anitomy::ElementCategory::ReleaseGroup)
                     .map(|e| e.to_string()),
 
-                size: Some(metadata.len() as u64),
+                size: Some(metadata.len() as i64),
                 ..Default::default()
             })
         }

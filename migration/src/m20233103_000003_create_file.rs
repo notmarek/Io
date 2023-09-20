@@ -76,7 +76,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(File::Season).string())
                     .col(ColumnDef::new(File::Episode).integer())
                     .col(ColumnDef::new(File::ReleaseGroup).string())
-                    .col(ColumnDef::new(File::Size).big_unsigned())
+                    .col(ColumnDef::new(File::Size).big_integer())
                     .to_owned(),
             )
             .await
