@@ -40,7 +40,11 @@ pub async fn crawl(
 pub async fn scan_file(file_path: &Path) -> Result<File, String> {
     let mut anitomy: Anitomy = Anitomy::new();
     let metadata = fs::metadata(file_path).map_err(|e| e.to_string())?;
-    match anitomy.parse(file_path.file_name().unwrap().to_str().unwrap()) {
+    let filename = match file_path.file_name() {
+        Some(name) => name.to_str().unwrap(),
+        None => file_path.to_str().unwrap(),
+    };
+    match anitomy.parse(filename) {
         Ok(ref elements) => {
             debug!(
                 "Scanning {:#?}: {} #{} by {}",
