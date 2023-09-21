@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::{
     models::{file::FileActions, user::UserActions},
     ErrorResponse, Response, VerifiedAuthData,
@@ -16,6 +17,12 @@ struct FileId {
     file_id: Uuid,
 }
 
+#[derive(Deserialize)]
+struct FileToken {
+    #[serde(rename = "t")]
+    pub token: Option<String>,
+}
+
 impl FileId {
     pub async fn get(&self, pool: &DatabaseConnection) -> Result<File, String> {
         File::get(self.file_id, pool).await
@@ -28,6 +35,49 @@ pub struct Nginx {
     pub token: Option<String>,
     #[serde(rename = "u")]
     pub uri: Option<Uuid>,
+}
+#[get("/playlist/{file_id}.m3u")]
+async fn playlist(
+    fid: web::Path<FileId>,
+    file_token: web::Query<FileToken>,
+    db: web::Data<DatabaseConnection>,
+    config: web::Data<Config>,
+) -> actix_web::Result<impl actix_web::Responder> {
+    if !User::can_access_with_file_token(file_token.token.clone().unwrap(), &db).await {
+        return Err(error::ErrorUnauthorized(ErrorResponse {
+            status: "error".to_string(),
+            error: "Unauthorized".to_string(),
+        }));
+    }
+    let the_file = fid.get(&db).await;
+    if let Err(e) = the_file {
+        return Err(error::ErrorNotFound(ErrorResponse {
+            status: "error".to_string(),
+            error: e,
+        }));
+    };
+    let the_file = the_file.unwrap();
+    if !the_file.folder {
+        return Ok("Hellnah".to_string());
+    }
+    let mut pl = String::from("#EXTM3U\n\n");
+    let folder_content = the_file.get_folder_content(&db).await.unwrap();
+
+    for f in folder_content {
+        if !f.folder {
+            pl += &format!(
+                "#EXTINF:0,[{}] {} - {}\n{}/{}?t={}\n\n",
+                f.release_group.unwrap_or("UNK".to_string()),
+                f.title.unwrap_or(f.path),
+                f.episode.unwrap_or(0),
+                config.info.storage_url,
+                f.id,
+                file_token.token.clone().unwrap(),
+            );
+        }
+    }
+
+    Ok(pl)
 }
 
 #[utoipa::path(
@@ -106,7 +156,7 @@ async fn nginx(
 }
 
 pub fn configure_na(cfg: &mut web::ServiceConfig) {
-    cfg.service(nginx);
+    cfg.service(nginx).service(playlist);
 }
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
