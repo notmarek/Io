@@ -5,6 +5,7 @@ import {
   submit,
   token,
 } from "./api.js";
+import { NotificationHandler } from "./notifications.js";
 import { get_info, user } from "./api_client.js";
 import { ThemeManager } from "./theme.js";
 let DEBUG = location.search.includes("?debug") ||
@@ -132,12 +133,32 @@ const alert = (timeout, heading, body, text_color, bg_color) => {
   renderState.render("alert/v01", "#alert", {
     heading,
     body,
-    text_color,
-    bg_color,
+    text_color: text_color.replaceAll(/#/g, "%%"),
+    bg_color: bg_color.replaceAll(/#/g, "%%"),
     timeout,
   });
 };
 
+const alertTags = (title, body, tags, priority) => {
+  let text_color = ThemeManager.successTextColor;
+  let bg_color = ThemeManager.successColor;
+  let timeout = 1000 * priority;
+  if (tags.includes("error")) {
+    text_color = ThemeManager.errorTextColor;
+    bg_color = ThemeManager.errorColor;
+  } else if (tags.includes( "warning")) {
+    // todo
+  } else if (tags.includes("success")) {
+    text_color = ThemeManager.successTextColor;
+    bg_color = ThemeManager.successColor;
+  } else if (tags.includes("text") && tags.includes("bg") && tags.length >= 4) {
+    console.log(tags.indexOf("text"))
+    text_color = tags[tags.indexOf("text") + 1];
+    bg_color = tags[tags.indexOf("bg") + 1];
+  }
+
+  return alert(timeout, title, body, text_color, bg_color);
+}
 const setup_storage = () => {
   window.session = {
     invalid: [],
@@ -325,4 +346,6 @@ if (localStorage.getItem("refresh_token")) {
     }
   });
 }
+NotificationHandler.subscribe("marektestings", alertTags)
 router();
+
