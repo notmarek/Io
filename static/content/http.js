@@ -1,6 +1,6 @@
 import { token } from "./api.js";
 const proxy_handler = {
-  get(target, prop, receiver) {
+  get(target, prop, _receiver) {
     return async (...args) => {
       const res = await target;
       return await res[prop].apply(res, args);

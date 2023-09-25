@@ -50,13 +50,13 @@ window.addEventListener("popstate", () => {
 /// shortcut handler
 window.onkeydown = (e) => {
   if (
-    e.ctrlKey && e.shiftKey && e.keyCode === 70 && // CTRL + SHIFT + F
+    e.ctrlKey && e.shiftKey && e.key === "F" && // CTRL + SHIFT + F
     !renderState.is_being_rendered("search/overlay", "#overlay")
   ) {
     e.preventDefault();
     renderState.render("search/overlay", "#overlay");
   }
-  if (e.keyCode === 27) { // ESC
+  if (e.key === "Escape") { // ESC
     renderState.unrender("#overlay");
   }
   return true;
@@ -71,7 +71,7 @@ window.addEventListener(`click`, async (e) => {
         `Attempting to copy '${origin.href}' to the clipboard.`,
       );
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(origin.href);
+        await navigator.clipboard.writeText(origin.href);
         alert(
           3000,
           "Copied to clipboard!",
@@ -102,10 +102,10 @@ window.addEventListener(`click`, async (e) => {
     return false;
   }
 });
-const error = (src, msg) => {
+export const error = (src, msg) => {
   log(`${src}:Error`, msg, "#F00");
 };
-const log = (src, msg, text_color = null) => {
+export const log = (src, msg, text_color = null) => {
   return console.log(
     `%c[${src}] %c${msg}`,
     `color: ${window.ThemeManager.style.accentColor}`,
@@ -132,7 +132,7 @@ function hashCode(str) {
 const alert = (timeout, heading, body, text_color, bg_color) => {
   renderState.render("alert/v01", "#alert", {
     heading,
-    body,
+    body: body.replaceAll("<", "&lt;").replaceAll(">", "&gt;"),
     text_color: text_color.replaceAll(/#/g, "%%"),
     bg_color: bg_color.replaceAll(/#/g, "%%"),
     timeout,
@@ -147,7 +147,8 @@ const alertTags = (title, body, tags, priority) => {
     text_color = ThemeManager.errorTextColor;
     bg_color = ThemeManager.errorColor;
   } else if (tags.includes( "warning")) {
-    // todo
+    text_color = ThemeManager.warningTextColor;
+    bg_color = ThemeManager.warningColor;
   } else if (tags.includes("success")) {
     text_color = ThemeManager.successTextColor;
     bg_color = ThemeManager.successColor;
@@ -312,7 +313,7 @@ const router = () => {
   } else renderState.render("header/unauthenticated", "#header div.buttons");
 
   let fn = simpleRoutes[path];
-  if (fn != undefined) {
+  if (fn !== undefined) {
     log("Router", `Found a dumb route for '${path}'`);
     return fn();
   } else {
@@ -346,6 +347,6 @@ if (localStorage.getItem("refresh_token")) {
     }
   });
 }
-NotificationHandler.subscribe("marektestings", alertTags)
+NotificationHandler.subscribe(`${location.hostname}-${await self.get_username()}`.replaceAll(".", ""), alertTags)
 router();
 

@@ -13,6 +13,8 @@ export const ThemeManager = {
     successTextColor: "#000",
     errorColor: "#fc323f",
     errorTextColor: "#fff",
+    warningColor: "#fce432",
+    warningTextColor: "#000000",
   },
   get style() {
     return this._style;
@@ -34,6 +36,8 @@ export const ThemeManager = {
       successTextColor: "st",
       errorColor: "ec",
       errorTextColor: "et",
+      warningColor: "wc",
+      warningTextColor: "wt",
     },
   },
   _css: null,
@@ -54,7 +58,7 @@ export const ThemeManager = {
           serStyle[this.serializeMaps.v1[key]] = this.style[key];
         }
         return btoa(
-          JSON.stringify({ v: 1, ...serStyle }).replaceAll(/{|}|\"/g, ""),
+          JSON.stringify({ v: 1, ...serStyle }).replaceAll(/[{}"]/g, ""),
         ).replaceAll(/=/g, "");
       },
     };
@@ -63,7 +67,7 @@ export const ThemeManager = {
   import(code) {
     let versions = {
       v1: (code) => {
-        code = `{ "${atob(code).replaceAll(/(:|,)/g, '"$1"')}" }`;
+        code = `{ "${atob(code).replaceAll(/([:,])/g, '"$1"')}" }`;
         const serStyle = JSON.parse(code);
         let deserStyle = {};
         for (let key in this.serializeMaps.v1) {

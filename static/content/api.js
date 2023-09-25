@@ -1,4 +1,4 @@
-import { library, user } from "./api_client.js";
+import { user } from "./api_client.js";
 export let navigate = (p) => {
   history.pushState({}, document.title, p);
   window.dispatchEvent(new Event("popstate"));
