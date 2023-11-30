@@ -4,3 +4,4 @@ config.json
 /keys
 
 *.db
+*.db-journal

@@ -1,5 +1,5 @@
 use crate::auth::Claims;
-use argon2::{self, hash_encoded, verify_encoded, Config, ThreadMode, Variant, Version};
+use argon2::{self, hash_encoded, verify_encoded, Config, Variant, Version};
 use async_trait::async_trait;
 use entity::file_tokens;
 use entity::prelude::FileTokens;
@@ -16,7 +16,6 @@ pub fn hash_password(password: String, salt: String) -> String {
         mem_cost: 65536,
         time_cost: 4,
         lanes: 4,
-        thread_mode: ThreadMode::Sequential,
         secret: &[],
         ad: &[],
         hash_length: 32,

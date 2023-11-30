@@ -10,7 +10,7 @@ members = [".", "migration", "entity"]
 
 [dependencies]
 # actix - web framework
-actix-web = "4.4"
+actix-web = { version = "4.4", features = ["rustls"] }
 actix-cors = "0.6"
 actix-http = "3.4"
 actix-files = "0.6"
@@ -19,38 +19,48 @@ actix-web-httpauth = "0.8"
 tokio = { version = "1.32", features = ["rt-multi-thread", "macros"] }
 
 # utoipa - swagger docs
-utoipa = { version = "3", features = ["actix_extras"] }
-utoipa-swagger-ui = { version = "3", features = ["actix-web"] }
+utoipa = { version = "4", features = ["actix_extras"] }
+utoipa-swagger-ui = { version = "5", features = ["actix-web"] }
 
 # reqwest - http client
-reqwest = { version = "0.11", features = ["json", "stream"] }
+reqwest = { version = "0.11", default-features = false, features = [
+    "stream",
+    "json",
+    "rustls-tls",
+] }
 
 # serde - json serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0"
 
-# log - logging
-pretty_env_logger = "0.4"
+# log - loggings
+pretty_env_logger = "0.5"
 log = "0.4"
 
 # jwt - authorization
-jsonwebtoken = "8"
+jsonwebtoken = "9"
 
 # chrono - date and time
-chrono = "0.4" 
+chrono = "0.4"
 
 # sea-orm - database
-sea-orm = { version = "0.11", features = [ "debug-print", "runtime-tokio-rustls", "sqlx-mysql", "sqlx-postgres", "sqlx-sqlite" ] }
+sea-orm = { version = "0.12", features = [
+    "debug-print",
+    "runtime-tokio-rustls",
+    "sqlx-mysql",
+    "sqlx-postgres",
+    "sqlx-sqlite",
+] }
 
 
 # argon2 - password hashing
-rust-argon2 = "1.0"
+rust-argon2 = "2.0"
 
 # uuid - uuid generation
 uuid = { version = "1", features = ["v4", "fast-rng", "macro-diagnostics"] }
 
 # sysinfo - system info
-sysinfo = "0.28"
+sysinfo = "0.29"
 
 # futures - async
 futures = "0.3"
@@ -62,7 +72,7 @@ thiserror = "1.0"
 async-trait = "0.1"
 
 # anitomy - title parser
-anitomy = "0.1"
+anitomy = "0.2"
 
 entity = { path = "entity" }
 migration = { path = "migration" }
